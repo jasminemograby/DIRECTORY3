@@ -17,12 +17,34 @@ function CompanyVerificationPage() {
       return;
     }
 
+    // Initial fetch
     fetchVerificationStatus();
   }, [companyId, navigate]);
 
   useEffect(() => {
+    // Don't set up polling/redirect if we don't have verification data yet
+    if (!verificationData) {
+      return;
+    }
+
+    const status = verificationData.verification_status;
+
+    // Auto-redirect when approved (highest priority)
+    if (status === 'approved') {
+      console.log('[VerificationPage] Status is approved, scheduling redirect');
+      // Stop any polling
+      setPolling(false);
+      
+      const timer = setTimeout(() => {
+        console.log('[VerificationPage] Redirecting to CSV upload page');
+        navigate(`/upload/${companyId}`);
+      }, 5000); // Redirect after 5 seconds (give user time to see success message)
+
+      return () => clearTimeout(timer);
+    }
+
     // Poll for status updates if status is pending
-    if (verificationData?.verification_status === 'pending' && !polling) {
+    if (status === 'pending' && !polling) {
       console.log('[VerificationPage] Starting polling for status updates');
       setPolling(true);
       const interval = setInterval(() => {
@@ -35,17 +57,6 @@ function CompanyVerificationPage() {
         clearInterval(interval);
         setPolling(false);
       };
-    }
-
-    // Auto-redirect when approved
-    if (verificationData?.verification_status === 'approved') {
-      console.log('[VerificationPage] Status is approved, scheduling redirect');
-      const timer = setTimeout(() => {
-        console.log('[VerificationPage] Redirecting to CSV upload page');
-        navigate(`/upload/${companyId}`);
-      }, 5000); // Redirect after 5 seconds (give user time to see success message)
-
-      return () => clearTimeout(timer);
     }
   }, [verificationData, navigate, companyId, polling]);
 
