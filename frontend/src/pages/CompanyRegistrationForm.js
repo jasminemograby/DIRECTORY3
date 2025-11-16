@@ -88,6 +88,7 @@ function CompanyRegistrationForm() {
       
       if (response && response.response && response.response.company_id) {
         // Navigate to verification page with company ID
+        // Verification is automatically triggered on the backend
         navigate(`/verify/${response.response.company_id}`);
       } else {
         setErrors({ submit: 'Registration failed. Please try again.' });

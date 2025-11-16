@@ -2,10 +2,12 @@
 // Business logic for company registration
 
 const CompanyRepository = require('../infrastructure/CompanyRepository');
+const VerifyCompanyUseCase = require('./VerifyCompanyUseCase');
 
 class RegisterCompanyUseCase {
   constructor() {
     this.companyRepository = new CompanyRepository();
+    this.verifyCompanyUseCase = new VerifyCompanyUseCase();
   }
 
   /**
@@ -25,6 +27,12 @@ class RegisterCompanyUseCase {
 
     // Create company
     const company = await this.companyRepository.create(companyData);
+
+    // Trigger domain verification automatically (async, don't wait)
+    this.verifyCompanyUseCase.verifyDomain(company.id).catch(error => {
+      console.error('Auto-verification failed:', error);
+      // Don't fail registration if verification fails
+    });
 
     return {
       company_id: company.id,

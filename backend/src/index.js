@@ -27,6 +27,8 @@ app.get('/health', (req, res) => {
 
 // Initialize controllers
 const companyRegistrationController = new CompanyRegistrationController();
+const CompanyVerificationController = require('./presentation/CompanyVerificationController');
+const companyVerificationController = new CompanyVerificationController();
 
 // API Routes
 const apiRouter = express.Router();
@@ -34,6 +36,15 @@ const apiRouter = express.Router();
 // Company Registration
 apiRouter.post('/companies/register', (req, res, next) => {
   companyRegistrationController.register(req, res, next);
+});
+
+// Company Verification
+apiRouter.get('/companies/:id/verification', (req, res, next) => {
+  companyVerificationController.getStatus(req, res, next);
+});
+
+apiRouter.post('/companies/:id/verify', (req, res, next) => {
+  companyVerificationController.verify(req, res, next);
 });
 
 app.use('/api/v1', apiRouter);
