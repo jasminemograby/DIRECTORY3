@@ -28,11 +28,12 @@ class CompanyRepository {
   }
 
   /**
-   * Create a new company
+   * Create a new company (with transaction support)
    * @param {Object} companyData - Company data
+   * @param {Object} client - Optional database client for transaction
    * @returns {Promise<Object>} Created company
    */
-  async create(companyData) {
+  async create(companyData, client = null) {
     const {
       company_name,
       industry,
@@ -67,7 +68,8 @@ class CompanyRepository {
     ];
 
     try {
-      const result = await this.pool.query(query, values);
+      const queryRunner = client || this.pool;
+      const result = await queryRunner.query(query, values);
       return result.rows[0];
     } catch (error) {
       if (error.code === '23505') { // Unique violation
@@ -75,6 +77,48 @@ class CompanyRepository {
       }
       throw error;
     }
+  }
+
+  /**
+   * Delete a company by ID (for cleanup on failed registration)
+   * @param {string} companyId - Company ID
+   * @param {Object} client - Optional database client for transaction
+   * @returns {Promise<void>}
+   */
+  async deleteById(companyId, client = null) {
+    const query = 'DELETE FROM companies WHERE id = $1';
+    const queryRunner = client || this.pool;
+    await queryRunner.query(query, [companyId]);
+  }
+
+  /**
+   * Begin a database transaction
+   * @returns {Promise<Object>} Database client for transaction
+   */
+  async beginTransaction() {
+    const client = await this.pool.connect();
+    await client.query('BEGIN');
+    return client;
+  }
+
+  /**
+   * Commit a database transaction
+   * @param {Object} client - Database client
+   * @returns {Promise<void>}
+   */
+  async commitTransaction(client) {
+    await client.query('COMMIT');
+    client.release();
+  }
+
+  /**
+   * Rollback a database transaction
+   * @param {Object} client - Database client
+   * @returns {Promise<void>}
+   */
+  async rollbackTransaction(client) {
+    await client.query('ROLLBACK');
+    client.release();
   }
 
   /**
