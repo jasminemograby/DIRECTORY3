@@ -27,9 +27,9 @@ class DomainValidator {
   async hasValidDNS(domain) {
     try {
       // Add timeout for DNS lookup (5 seconds)
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('DNS lookup timeout')), 5000)
-      ));
+      const timeoutPromise = new Promise((resolve, reject) => {
+        setTimeout(() => reject(new Error('DNS lookup timeout')), 5000);
+      });
       
       await Promise.race([
         dns.resolve4(domain),
@@ -39,9 +39,9 @@ class DomainValidator {
     } catch (error) {
       // Try AAAA record (IPv6)
       try {
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('DNS lookup timeout')), 5000)
-        );
+        const timeoutPromise = new Promise((resolve, reject) => {
+          setTimeout(() => reject(new Error('DNS lookup timeout')), 5000);
+        });
         
         await Promise.race([
           dns.resolve6(domain),
