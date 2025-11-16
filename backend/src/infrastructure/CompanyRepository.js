@@ -133,6 +133,36 @@ class CompanyRepository {
   }
 
   /**
+   * Check if company has completed full registration (has employees from CSV upload)
+   * @param {string} companyId - Company ID
+   * @returns {Promise<boolean>} True if company has employees (fully registered)
+   */
+  async hasCompletedRegistration(companyId) {
+    const query = 'SELECT COUNT(*) as employee_count FROM employees WHERE company_id = $1';
+    const result = await this.pool.query(query, [companyId]);
+    const employeeCount = parseInt(result.rows[0].employee_count, 10);
+    return employeeCount > 0;
+  }
+
+  /**
+   * Find fully registered company by domain (only if CSV uploaded and employees exist)
+   * @param {string} domain - Company domain
+   * @returns {Promise<Object|null>} Fully registered company or null
+   */
+  async findFullyRegisteredByDomain(domain) {
+    const query = `
+      SELECT c.* 
+      FROM companies c
+      WHERE c.domain = $1
+      AND EXISTS (
+        SELECT 1 FROM employees e WHERE e.company_id = c.id
+      )
+    `;
+    const result = await this.pool.query(query, [domain]);
+    return result.rows[0] || null;
+  }
+
+  /**
    * Find company by ID
    * @param {string} id - Company ID
    * @returns {Promise<Object|null>} Company or null

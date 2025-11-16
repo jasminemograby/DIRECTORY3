@@ -19,11 +19,24 @@ class RegisterCompanyUseCase {
     // Step 1: Validate all data BEFORE any database operations
     this.validateCompanyData(companyData);
 
-    // Step 2: Check if company with same domain already exists
-    // This check happens BEFORE creating any records
-    const existingCompany = await this.companyRepository.findByDomain(companyData.domain);
-    if (existingCompany) {
-      throw new Error('A company with this domain already exists. Please use a different domain or contact support if you believe this is an error.');
+    // Step 2: Check if a FULLY REGISTERED company with same domain already exists
+    // Only block domains for companies that have completed full registration (CSV uploaded, employees created)
+    // Partial registrations (no CSV/employees) should not block future attempts
+    const fullyRegisteredCompany = await this.companyRepository.findFullyRegisteredByDomain(companyData.domain);
+    if (fullyRegisteredCompany) {
+      throw new Error('A company with this domain has already completed registration. Please use a different domain or contact support if you believe this is an error.');
+    }
+    
+    // If a company exists but hasn't completed registration, allow re-registration
+    // (This handles cases where previous registration attempts failed before CSV upload)
+    const existingIncompleteCompany = await this.companyRepository.findByDomain(companyData.domain);
+    if (existingIncompleteCompany) {
+      const hasCompleted = await this.companyRepository.hasCompletedRegistration(existingIncompleteCompany.id);
+      if (!hasCompleted) {
+        // Company exists but incomplete - allow re-registration by deleting the incomplete record
+        console.log(`[RegisterCompanyUseCase] Found incomplete registration for domain ${companyData.domain}, allowing re-registration`);
+        await this.companyRepository.deleteById(existingIncompleteCompany.id);
+      }
     }
 
     // Step 3: Use transaction to ensure atomicity
