@@ -1,14 +1,15 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function LandingPage() {
+  const navigate = useNavigate();
+
   const handleRegister = () => {
-    // Navigate to company registration (to be implemented)
-    console.log('Navigate to company registration');
+    navigate('/register');
   };
 
   const handleLogin = () => {
-    // Navigate to login page (to be implemented)
-    console.log('Navigate to login');
+    navigate('/login');
   };
 
   return (

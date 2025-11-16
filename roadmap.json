@@ -21,7 +21,14 @@
         "frontend/src/components/LandingPageButtons.js",
         "frontend/src/styles/landing.css"
       ],
-      "milestone": "M1"
+      "milestone": "M1",
+      "required_templates": [
+        "UI-UX-Design-Template.md",
+        "Feature-Design-Template.md",
+        "Database-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md"
+      ]
     },
     {
       "id": "F002",
@@ -44,7 +51,14 @@
         "backend/src/application/RegisterCompanyUseCase.js",
         "backend/src/infrastructure/CompanyRepository.js"
       ],
-      "milestone": "M1"
+      "milestone": "M1",
+      "required_templates": [
+        "UI-UX-Design-Template.md",
+        "Feature-Design-Template.md",
+        "Database-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md"
+      ]
     },
     {
       "id": "F003",
@@ -65,7 +79,13 @@
         "backend/src/application/VerifyCompanyUseCase.js",
         "backend/src/infrastructure/DomainValidator.js"
       ],
-      "milestone": "M1"
+      "milestone": "M1",
+      "required_templates": [
+        "UI-UX-Design-Template.md",
+        "Feature-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md"
+      ]
     },
     {
       "id": "F004",
@@ -90,7 +110,13 @@
         "backend/src/infrastructure/CSVParser.js",
         "backend/src/infrastructure/CSVValidator.js"
       ],
-      "milestone": "M1"
+      "milestone": "M1",
+      "required_templates": [
+        "UI-UX-Design-Template.md",
+        "Feature-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md"
+      ]
     },
     {
       "id": "F005",
@@ -111,7 +137,13 @@
         "backend/src/application/ValidateCSVDataUseCase.js",
         "backend/src/infrastructure/CSVErrorFormatter.js"
       ],
-      "milestone": "M1"
+      "milestone": "M1",
+      "required_templates": [
+        "UI-UX-Design-Template.md",
+        "Feature-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md"
+      ]
     },
     {
       "id": "F006",
@@ -135,7 +167,13 @@
         "backend/src/presentation/CompanyProfileController.js",
         "backend/src/application/GetCompanyProfileUseCase.js"
       ],
-      "milestone": "M1"
+      "milestone": "M1",
+      "required_templates": [
+        "UI-UX-Design-Template.md",
+        "Feature-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md"
+      ]
     },
     {
       "id": "F007",
@@ -160,7 +198,14 @@
         "backend/src/infrastructure/AuthService.js",
         "backend/src/middleware/authMiddleware.js"
       ],
-      "milestone": "M2"
+      "milestone": "M2",
+      "required_templates": [
+        "UI-UX-Design-Template.md",
+        "Feature-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md",
+        "Cybersecurity-Validation-Template.md"
+      ]
     },
     {
       "id": "F008",
@@ -184,7 +229,14 @@
         "backend/src/infrastructure/LinkedInOAuthClient.js",
         "backend/src/infrastructure/LinkedInAPIClient.js"
       ],
-      "milestone": "M2"
+      "milestone": "M2",
+      "required_templates": [
+        "UI-UX-Design-Template.md",
+        "Feature-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md",
+        "Cybersecurity-Validation-Template.md"
+      ]
     },
     {
       "id": "F009",
@@ -203,7 +255,13 @@
         "backend/src/infrastructure/GitHubOAuthClient.js",
         "backend/src/infrastructure/GitHubAPIClient.js"
       ],
-      "milestone": "M2"
+      "milestone": "M2",
+      "required_templates": [
+        "Feature-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md",
+        "Cybersecurity-Validation-Template.md"
+      ]
     },
     {
       "id": "F009A",
@@ -224,7 +282,13 @@
         "backend/src/presentation/GeminiController.js",
         "mockData/gemini_mock_data.json"
       ],
-      "milestone": "M2"
+      "milestone": "M2",
+      "required_templates": [
+        "UI-UX-Design-Template.md",
+        "Feature-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md"
+      ]
     },
     {
       "id": "F010",
@@ -256,7 +320,14 @@
         "backend/src/presentation/EmployeeProfileController.js",
         "backend/src/application/GetEmployeeProfileUseCase.js"
       ],
-      "milestone": "M2"
+      "milestone": "M2",
+      "required_templates": [
+        "UI-UX-Design-Template.md",
+        "Feature-Design-Template.md",
+        "Database-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md"
+      ]
     },
     {
       "id": "F011",
@@ -277,7 +348,13 @@
         "backend/src/application/UpdateTrainerSettingsUseCase.js",
         "backend/src/infrastructure/TrainerRepository.js"
       ],
-      "milestone": "M2"
+      "milestone": "M2",
+      "required_templates": [
+        "UI-UX-Design-Template.md",
+        "Feature-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md"
+      ]
     },
     {
       "id": "F012",
@@ -297,7 +374,13 @@
         "backend/src/presentation/TeamManagerController.js",
         "backend/src/application/GetTeamHierarchyUseCase.js"
       ],
-      "milestone": "M3"
+      "milestone": "M3",
+      "required_templates": [
+        "UI-UX-Design-Template.md",
+        "Feature-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md"
+      ]
     },
     {
       "id": "F013",
@@ -318,7 +401,13 @@
         "backend/src/presentation/DepartmentManagerController.js",
         "backend/src/application/GetDepartmentHierarchyUseCase.js"
       ],
-      "milestone": "M3"
+      "milestone": "M3",
+      "required_templates": [
+        "UI-UX-Design-Template.md",
+        "Feature-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md"
+      ]
     },
     {
       "id": "F014",
@@ -344,7 +433,13 @@
         "backend/src/application/ManageEmployeesUseCase.js",
         "backend/src/application/UpdateCompanySettingsUseCase.js"
       ],
-      "milestone": "M3"
+      "milestone": "M3",
+      "required_templates": [
+        "UI-UX-Design-Template.md",
+        "Feature-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md"
+      ]
     },
     {
       "id": "F015",
@@ -398,7 +493,13 @@
         "database/seeds/sample_data.sql",
         "database/seeds/lotus_tech_hub_seed.sql"
       ],
-      "milestone": "M0"
+      "milestone": "M0",
+      "required_templates": [
+        "Database-Design-Template.md",
+        "Feature-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md"
+      ]
     },
     {
       "id": "F017",
@@ -420,7 +521,14 @@
         "backend/src/middleware/rbacMiddleware.js",
         "backend/src/infrastructure/PermissionRepository.js"
       ],
-      "milestone": "M2"
+      "milestone": "M2",
+      "required_templates": [
+        "Feature-Design-Template.md",
+        "Database-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md",
+        "Cybersecurity-Validation-Template.md"
+      ]
     },
     {
       "id": "F018",
@@ -440,7 +548,12 @@
         "backend/src/application/LogActionUseCase.js",
         "backend/src/infrastructure/AuditLogRepository.js"
       ],
-      "milestone": "M2"
+      "milestone": "M2",
+      "required_templates": [
+        "Feature-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md"
+      ]
     },
     {
       "id": "F019",
@@ -459,7 +572,13 @@
         "backend/src/infrastructure/MockDataService.js",
         "backend/src/infrastructure/APIFallbackHandler.js"
       ],
-      "milestone": "M1"
+      "milestone": "M1",
+      "required_templates": [
+        "Feature-Design-Template.md",
+        "Database-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md"
+      ]
     },
     {
       "id": "F020",
@@ -477,7 +596,12 @@
         "database/seeds/sample_employees.json",
         "backend/src/infrastructure/SampleDataGenerator.js"
       ],
-      "milestone": "M1"
+      "milestone": "M1",
+      "required_templates": [
+        "Feature-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md"
+      ]
     },
     {
       "id": "F021",
@@ -495,7 +619,14 @@
         "backend/src/presentation/EmployeeProfileController.js",
         "backend/src/application/UpdateEmployeeProfileUseCase.js"
       ],
-      "milestone": "M2"
+      "milestone": "M2",
+      "required_templates": [
+        "UI-UX-Design-Template.md",
+        "Feature-Design-Template.md",
+        "Database-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md"
+      ]
     },
     {
       "id": "F022",
@@ -516,7 +647,13 @@
         "backend/src/application/SubmitRequestUseCase.js",
         "backend/src/infrastructure/RequestRepository.js"
       ],
-      "milestone": "M3"
+      "milestone": "M3",
+      "required_templates": [
+        "Feature-Design-Template.md",
+        "Implementation-Template.md",
+        "Deployment-Template.md",
+        "Testing-and-TDD-Template.md"
+      ]
     },
     {
       "id": "F023",
@@ -533,7 +670,13 @@
         ".github/workflows/test.yml",
         ".github/workflows/security-scan.yml"
       ],
-      "milestone": "M0"
+      "milestone": "M0",
+      "required_templates": [
+        "Feature-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md",
+        "Cybersecurity-Validation-Template.md"
+      ]
     },
     {
       "id": "F024",
@@ -551,7 +694,13 @@
         "backend/src/core/TenantContext.js",
         "backend/src/infrastructure/TenantRepository.js"
       ],
-      "milestone": "M2"
+      "milestone": "M2",
+      "required_templates": [
+        "Feature-Design-Template.md",
+        "Implementation-Template.md",
+        "Testing-and-TDD-Template.md",
+        "Cybersecurity-Validation-Template.md"
+      ]
     }
   ],
   "milestones": [

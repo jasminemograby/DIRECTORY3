@@ -11,6 +11,9 @@ const config = {
     password: process.env.DB_PASSWORD || process.env.SUPABASE_PASSWORD,
     ssl: process.env.DB_SSL === 'true' || process.env.SUPABASE_SSL === 'true'
   },
+  // Database connection string (for pg Pool)
+  databaseUrl: process.env.DATABASE_URL || process.env.SUPABASE_DB_URL,
+  databaseSsl: process.env.DB_SSL === 'true' || process.env.SUPABASE_SSL === 'true',
   requesterService: 'directory_service',
   gemini: {
     apiKey: process.env.GEMINI_API_KEY

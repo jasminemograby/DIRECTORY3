@@ -1,5 +1,10 @@
 const express = require('express');
 const cors = require('cors');
+const parseRequest = require('./shared/requestParser');
+const formatResponse = require('./shared/responseFormatter');
+
+// Controllers
+const CompanyRegistrationController = require('./presentation/CompanyRegistrationController');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -8,6 +13,8 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(parseRequest);
+app.use(formatResponse);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -18,12 +25,36 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API Routes (to be implemented)
-app.use('/api/v1', (req, res) => {
+// Initialize controllers
+const companyRegistrationController = new CompanyRegistrationController();
+
+// API Routes
+const apiRouter = express.Router();
+
+// Company Registration
+apiRouter.post('/companies/register', (req, res, next) => {
+  companyRegistrationController.register(req, res, next);
+});
+
+app.use('/api/v1', apiRouter);
+
+// 404 handler for undefined routes
+app.use((req, res) => {
   res.status(404).json({
     requester_service: 'directory_service',
     response: {
-      error: 'Endpoint not implemented yet'
+      error: 'Endpoint not found'
+    }
+  });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({
+    requester_service: 'directory_service',
+    response: {
+      error: 'Internal server error'
     }
   });
 });
