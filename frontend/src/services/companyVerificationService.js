@@ -7,7 +7,7 @@ import api from '../utils/api';
  */
 export const getCompanyVerificationStatus = async (companyId) => {
   try {
-    const response = await api.get(`/api/v1/companies/${companyId}/verification`);
+    const response = await api.get(`/companies/${companyId}/verification`);
 
     return response.data;
   } catch (error) {

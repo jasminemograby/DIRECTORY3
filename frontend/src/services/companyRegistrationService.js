@@ -7,7 +7,7 @@ import api from '../utils/api';
  */
 export const registerCompany = async (companyData) => {
   try {
-    const response = await api.post('/api/v1/companies/register', {
+    const response = await api.post('/companies/register', {
       requester_service: 'directory_service',
       payload: companyData
     });
