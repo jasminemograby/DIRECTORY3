@@ -31,10 +31,12 @@ class ParseCSVUseCase {
     const rawRows = await this.csvParser.parse(fileBuffer);
     console.log(`[ParseCSVUseCase] Parsed ${rawRows.length} rows from CSV`);
 
-    // Step 2: Normalize rows
-    const normalizedRows = rawRows.map((row, index) => 
-      this.csvParser.normalizeRow(row, index + 2) // +2 for header and 1-indexing
-    );
+    // Step 2: Normalize rows (use actual CSV line number if available)
+    const normalizedRows = rawRows.map((row) => {
+      // Use the actual CSV line number if stored during parsing, otherwise fall back to index + 2
+      const rowNumber = row._csvLineNumber || (rawRows.indexOf(row) + 2);
+      return this.csvParser.normalizeRow(row, rowNumber);
+    });
 
     // Step 3: Validate CSV data
     const validationResult = this.csvValidator.validate(normalizedRows, companyId);

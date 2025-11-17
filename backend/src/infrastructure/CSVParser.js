@@ -13,19 +13,27 @@ class CSVParser {
   async parse(fileBuffer) {
     return new Promise((resolve, reject) => {
       const results = [];
-      const stream = Readable.from(fileBuffer.toString());
+      const csvText = fileBuffer.toString();
+      let currentLineNumber = 1; // Start at 1 (header is line 1)
+      const stream = Readable.from(csvText);
 
       stream
         .pipe(csv())
         .on('data', (row) => {
+          currentLineNumber++; // Increment for each row (header was line 1)
           // Skip empty rows (rows where all values are empty or whitespace)
           const hasData = Object.values(row).some(value => value && String(value).trim().length > 0);
           if (hasData) {
+            // Store the actual CSV line number with the row
+            row._csvLineNumber = currentLineNumber;
             results.push(row);
+          } else {
+            // Still increment line number for empty rows, but don't add to results
+            // This ensures line numbers stay accurate
           }
         })
         .on('end', () => {
-          console.log(`[CSVParser] Parsed ${results.length} rows from CSV`);
+          console.log(`[CSVParser] Parsed ${results.length} data rows from CSV`);
           resolve(results);
         })
         .on('error', (error) => {
