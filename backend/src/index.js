@@ -53,6 +53,11 @@ apiRouter.post('/companies/:id/verify', (req, res, next) => {
   companyVerificationController.verify(req, res, next);
 });
 
+// CSV Upload
+apiRouter.post('/companies/:id/upload', (req, res, next) => {
+  csvUploadController.uploadCSV(req, res, next);
+});
+
 app.use('/api/v1', apiRouter);
 
 // 404 handler for undefined routes
