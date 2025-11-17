@@ -70,13 +70,13 @@ class CSVParser {
       employee_id: this.trimValue(row.employee_id),
       full_name: this.trimValue(row.full_name),
       email: this.trimValue(row.email),
-      role_type: this.trimValue(row.role_type),
+      role_type: this.normalizeRoleType(this.trimValue(row.role_type)),
       current_role_in_company: this.trimValue(row.current_role_in_company),
       target_role_in_company: this.trimValue(row.target_role_in_company),
       manager_id: this.trimValue(row.manager_id),
       password: this.trimValue(row.password),
       preferred_language: this.trimValue(row.preferred_language),
-      status: this.trimValue(row.status) || 'active',
+      status: this.normalizeEmployeeStatus(this.trimValue(row.status)) || 'active',
       
       // Trainer-specific fields
       ai_enabled: this.parseBoolean(row.ai_enabled),
@@ -135,6 +135,61 @@ class CSVParser {
       return 'automatic';
     }
     return null; // Invalid value, will default to 'manual' in the parser
+  }
+
+  /**
+   * Normalize employee status value
+   * @param {string} value - Value to normalize
+   * @returns {string|null} Normalized value ('active' or 'inactive') or null
+   */
+  normalizeEmployeeStatus(value) {
+    if (!value) {
+      return null;
+    }
+    const normalized = String(value).trim().toLowerCase();
+    // Check for exact matches
+    if (normalized === 'active') {
+      return 'active';
+    }
+    if (normalized === 'inactive') {
+      return 'inactive';
+    }
+    // Check for common variations
+    if (normalized.startsWith('active')) {
+      return 'active';
+    }
+    if (normalized.startsWith('inactive')) {
+      return 'inactive';
+    }
+    return null; // Invalid value, will default to 'active' in the parser
+  }
+
+  /**
+   * Normalize role_type value to uppercase
+   * Database constraint expects: REGULAR_EMPLOYEE, TRAINER, TEAM_MANAGER, DEPARTMENT_MANAGER, DECISION_MAKER
+   * @param {string} value - Value to normalize (can be combination like "REGULAR_EMPLOYEE + TEAM_MANAGER")
+   * @returns {string|null} Normalized value in uppercase or null
+   */
+  normalizeRoleType(value) {
+    if (!value) {
+      return null;
+    }
+    // Split by '+' to handle combinations, normalize each part, then rejoin
+    const parts = value.split('+').map(part => {
+      const trimmed = part.trim().toUpperCase();
+      // Validate each role part
+      const validRoles = [
+        'REGULAR_EMPLOYEE',
+        'TRAINER',
+        'TEAM_MANAGER',
+        'DEPARTMENT_MANAGER',
+        'DECISION_MAKER'
+      ];
+      return validRoles.includes(trimmed) ? trimmed : null;
+    }).filter(part => part !== null);
+    
+    // Return joined roles or null if no valid roles
+    return parts.length > 0 ? parts.join(' + ') : null;
   }
 }
 
