@@ -59,6 +59,17 @@ class DepartmentRepository {
     const result = await this.pool.query(query, [companyId, departmentId]);
     return result.rows[0] || null;
   }
+
+  /**
+   * Find all departments for a company
+   * @param {string} companyId - Company ID
+   * @returns {Promise<Array>} Array of departments
+   */
+  async findByCompanyId(companyId) {
+    const query = 'SELECT * FROM departments WHERE company_id = $1 ORDER BY department_name';
+    const result = await this.pool.query(query, [companyId]);
+    return result.rows;
+  }
 }
 
 module.exports = DepartmentRepository;

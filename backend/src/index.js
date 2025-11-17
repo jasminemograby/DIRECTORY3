@@ -7,6 +7,7 @@ const formatResponse = require('./shared/responseFormatter');
 const CompanyRegistrationController = require('./presentation/CompanyRegistrationController');
 const CompanyVerificationController = require('./presentation/CompanyVerificationController');
 const CSVUploadController = require('./presentation/CSVUploadController');
+const CompanyProfileController = require('./presentation/CompanyProfileController');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -39,6 +40,7 @@ app.get('/health', (req, res) => {
 const companyRegistrationController = new CompanyRegistrationController();
 const companyVerificationController = new CompanyVerificationController();
 const csvUploadController = new CSVUploadController();
+const companyProfileController = new CompanyProfileController();
 
 // API Routes
 const apiRouter = express.Router();
@@ -60,6 +62,11 @@ apiRouter.post('/companies/:id/verify', (req, res, next) => {
 // CSV Upload
 apiRouter.post('/companies/:id/upload', (req, res, next) => {
   csvUploadController.uploadCSV(req, res, next);
+});
+
+// Company Profile
+apiRouter.get('/companies/:id/profile', (req, res, next) => {
+  companyProfileController.getProfile(req, res, next);
 });
 
 app.use('/api/v1', apiRouter);

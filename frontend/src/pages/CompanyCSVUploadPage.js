@@ -43,10 +43,8 @@ function CompanyCSVUploadPage() {
           });
           
           // Redirect to company profile page after successful upload
-          // For now, we'll show success message and allow manual navigation
           setTimeout(() => {
-            // Navigate to company profile (F005 - to be implemented)
-            // navigate(`/company/${companyId}`);
+            navigate(`/company/${companyId}`);
           }, 3000);
         } else {
           // Validation failed - show errors

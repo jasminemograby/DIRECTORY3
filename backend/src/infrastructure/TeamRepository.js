@@ -60,6 +60,17 @@ class TeamRepository {
     const result = await this.pool.query(query, [companyId, teamId]);
     return result.rows[0] || null;
   }
+
+  /**
+   * Find all teams for a company
+   * @param {string} companyId - Company ID
+   * @returns {Promise<Array>} Array of teams
+   */
+  async findByCompanyId(companyId) {
+    const query = 'SELECT * FROM teams WHERE company_id = $1 ORDER BY team_name';
+    const result = await this.pool.query(query, [companyId]);
+    return result.rows;
+  }
 }
 
 module.exports = TeamRepository;

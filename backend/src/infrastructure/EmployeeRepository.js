@@ -177,6 +177,40 @@ class EmployeeRepository {
     const result = await queryRunner.query(query, [employeeId, aiEnabled, publicPublishEnable]);
     return result.rows[0];
   }
+
+  /**
+   * Find all employees for a company with their roles and teams
+   * @param {string} companyId - Company ID
+   * @returns {Promise<Array>} Array of employees with roles and teams
+   */
+  async findByCompanyId(companyId) {
+    const query = `
+      SELECT 
+        e.*,
+        COALESCE(
+          json_agg(DISTINCT er.role_type) FILTER (WHERE er.role_type IS NOT NULL),
+          '[]'::json
+        ) as roles,
+        COALESCE(
+          json_agg(DISTINCT jsonb_build_object('id', t.id, 'team_id', t.team_id, 'team_name', t.team_name)) 
+          FILTER (WHERE t.id IS NOT NULL),
+          '[]'::json
+        ) as teams
+      FROM employees e
+      LEFT JOIN employee_roles er ON e.id = er.employee_id
+      LEFT JOIN employee_teams et ON e.id = et.employee_id
+      LEFT JOIN teams t ON et.team_id = t.id
+      WHERE e.company_id = $1
+      GROUP BY e.id
+      ORDER BY e.full_name
+    `;
+    const result = await this.pool.query(query, [companyId]);
+    return result.rows.map(row => ({
+      ...row,
+      roles: row.roles || [],
+      teams: row.teams || []
+    }));
+  }
 }
 
 module.exports = EmployeeRepository;

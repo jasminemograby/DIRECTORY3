@@ -4,6 +4,7 @@ import LandingPage from './pages/LandingPage';
 import CompanyRegistrationForm from './pages/CompanyRegistrationForm';
 import CompanyVerificationPage from './pages/CompanyVerificationPage';
 import CompanyCSVUploadPage from './pages/CompanyCSVUploadPage';
+import CompanyProfilePage from './pages/CompanyProfilePage';
 import './App.css';
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
           <Route path="/register" element={<CompanyRegistrationForm />} />
           <Route path="/verify/:companyId" element={<CompanyVerificationPage />} />
           <Route path="/upload/:companyId" element={<CompanyCSVUploadPage />} />
+          <Route path="/company/:companyId" element={<CompanyProfilePage />} />
         </Routes>
       </div>
     </Router>
