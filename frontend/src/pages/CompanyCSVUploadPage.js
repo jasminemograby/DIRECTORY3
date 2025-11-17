@@ -60,11 +60,26 @@ function CompanyCSVUploadPage() {
       }
     } catch (err) {
       console.error('CSV upload error:', err);
-      setError(
-        err.response?.data?.response?.error ||
-        err.message ||
-        'An error occurred while uploading the CSV file. Please try again.'
-      );
+      
+      // Check if this is a validation error with validation data
+      const errorResponse = err.response?.data?.response;
+      if (errorResponse && errorResponse.validation) {
+        // This is a validation error - show validation results
+        setUploadResult({
+          success: false,
+          validation: errorResponse.validation,
+          created: errorResponse.created || { departments: 0, teams: 0, employees: 0 },
+          message: errorResponse.message || 'CSV validation failed. Please correct the errors below.'
+        });
+        setError(null); // Clear generic error
+      } else {
+        // This is a different type of error
+        setError(
+          errorResponse?.error ||
+          err.message ||
+          'An error occurred while uploading the CSV file. Please try again.'
+        );
+      }
     } finally {
       setIsUploading(false);
     }

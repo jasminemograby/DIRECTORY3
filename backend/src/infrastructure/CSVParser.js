@@ -18,7 +18,11 @@ class CSVParser {
       stream
         .pipe(csv())
         .on('data', (row) => {
-          results.push(row);
+          // Skip empty rows (rows where all values are empty or whitespace)
+          const hasData = Object.values(row).some(value => value && String(value).trim().length > 0);
+          if (hasData) {
+            results.push(row);
+          }
         })
         .on('end', () => {
           console.log(`[CSVParser] Parsed ${results.length} rows from CSV`);

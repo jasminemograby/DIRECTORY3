@@ -39,6 +39,11 @@ class ParseCSVUseCase {
     // Step 3: Validate CSV data
     const validationResult = this.csvValidator.validate(normalizedRows, companyId);
     console.log(`[ParseCSVUseCase] Validation complete: ${validationResult.validRows.length} valid rows, ${validationResult.errors.length} errors, ${validationResult.warnings.length} warnings`);
+    
+    // Log first few errors for debugging
+    if (validationResult.errors.length > 0) {
+      console.log(`[ParseCSVUseCase] First 5 errors:`, validationResult.errors.slice(0, 5));
+    }
 
     // Step 4: If there are critical errors, return validation result without processing
     if (!validationResult.isValid) {
