@@ -5,6 +5,8 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import CSVUploadForm from '../components/CSVUploadForm';
 import CSVUploadProgress from '../components/CSVUploadProgress';
+import CSVErrorDisplay from '../components/CSVErrorDisplay';
+import CSVCorrectionForm from '../components/CSVCorrectionForm';
 import { uploadCSV } from '../services/csvUploadService';
 
 function CompanyCSVUploadPage() {
@@ -127,6 +129,30 @@ function CompanyCSVUploadPage() {
           created={uploadResult?.created}
           isProcessing={isUploading}
         />
+
+        {/* Error Display with Correction Interface */}
+        {uploadResult && !uploadResult.success && uploadResult.validation && (
+          <>
+            <CSVErrorDisplay
+              validation={uploadResult.validation}
+              onCorrection={(rowNumber, corrections) => {
+                console.log('Corrections for row', rowNumber, ':', corrections);
+                // TODO: Implement correction handling
+              }}
+            />
+            <CSVCorrectionForm
+              validation={uploadResult.validation}
+              onResubmit={async (corrections) => {
+                console.log('Resubmitting with corrections:', corrections);
+                // TODO: Implement resubmit with corrections
+              }}
+              onCancel={() => {
+                setUploadResult(null);
+                setSelectedFile(null);
+              }}
+            />
+          </>
+        )}
 
         {/* Instructions */}
         <div className="mt-8 p-6 rounded-lg max-w-2xl mx-auto" style={{ background: 'var(--bg-card)' }}>
