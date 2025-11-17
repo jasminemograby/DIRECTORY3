@@ -55,7 +55,7 @@ class CSVParser {
       // Company data
       company_name: this.trimValue(row.company_name),
       industry: this.trimValue(row.industry),
-      learning_path_approval: this.trimValue(row.learning_path_approval) || 'manual',
+      learning_path_approval: this.normalizeLearningPathApproval(this.trimValue(row.learning_path_approval)) || 'manual',
       primary_kpis: this.trimValue(row.primary_KPIs) || this.trimValue(row.primary_kpis),
       
       // Department data
@@ -108,6 +108,30 @@ class CSVParser {
     }
     const str = String(value).trim().toUpperCase();
     return str === 'TRUE' || str === '1' || str === 'YES';
+  }
+
+  /**
+   * Normalize learning_path_approval value
+   * @param {string} value - Value to normalize
+   * @returns {string|null} Normalized value ('manual' or 'automatic') or null
+   */
+  normalizeLearningPathApproval(value) {
+    if (!value) {
+      return null;
+    }
+    const normalized = String(value).trim().toLowerCase();
+    // Only return if it's a valid value, otherwise return null
+    if (normalized === 'manual' || normalized === 'automatic') {
+      return normalized;
+    }
+    // If it's close (like "Manual"), normalize it
+    if (normalized === 'manual' || normalized.startsWith('manual')) {
+      return 'manual';
+    }
+    if (normalized === 'automatic' || normalized.startsWith('automatic')) {
+      return 'automatic';
+    }
+    return null; // Invalid value, will default to 'manual' in the parser
   }
 }
 
