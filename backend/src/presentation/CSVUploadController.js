@@ -36,19 +36,13 @@ class CSVUploadController {
       if (err) {
         console.error('[CSVUploadController] Upload error:', err);
         return res.status(400).json({
-          requester_service: 'directory_service',
-          response: {
-            error: err.message || 'File upload failed'
-          }
+          error: err.message || 'File upload failed'
         });
       }
 
       if (!req.file) {
         return res.status(400).json({
-          requester_service: 'directory_service',
-          response: {
-            error: 'No CSV file provided'
-          }
+          error: 'No CSV file provided'
         });
       }
 
@@ -63,33 +57,24 @@ class CSVUploadController {
 
         if (result.success) {
           res.status(200).json({
-            requester_service: 'directory_service',
-            response: {
-              success: true,
-              message: result.message,
-              validation: result.validation,
-              created: result.created
-            }
+            success: true,
+            message: result.message,
+            validation: result.validation,
+            created: result.created
           });
         } else {
           // Validation failed - return errors but don't create records
           res.status(400).json({
-            requester_service: 'directory_service',
-            response: {
-              success: false,
-              message: result.message,
-              validation: result.validation,
-              created: result.created
-            }
+            success: false,
+            message: result.message,
+            validation: result.validation,
+            created: result.created
           });
         }
       } catch (error) {
         console.error('[CSVUploadController] CSV processing error:', error);
         res.status(500).json({
-          requester_service: 'directory_service',
-          response: {
-            error: error.message || 'An error occurred while processing the CSV file'
-          }
+          error: error.message || 'An error occurred while processing the CSV file'
         });
       }
     });
