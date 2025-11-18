@@ -92,9 +92,6 @@ class OAuthController {
       } else {
         console.log('[OAuthController] Waiting for GitHub connection before enrichment');
       }
-
-      // Check if both OAuth connections are complete
-      const isReady = await this.enrichProfileUseCase.isReadyForEnrichment(employeeId);
       
       // Redirect back to enrich page
       // If both are connected, the frontend will auto-redirect to profile
