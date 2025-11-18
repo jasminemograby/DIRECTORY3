@@ -9,7 +9,7 @@ This document contains the final clarifications for all unclear points after rec
 ## 1. Employee Profile Enrichment Timing ✅ ANSWERED
 
 ### Answer:
-**Enrichment happens on first employee login, not during CSV upload.**
+**Enrichment happens on first employee login, not during CSV upload. After enrichment, HR approval is required before employee can use the system.**
 
 ### Flow:
 1. **Company uploads CSV** → Directory creates company profile
@@ -20,20 +20,33 @@ This document contains the final clarifications for all unclear points after rec
 4. **Employee connects LinkedIn + GitHub** (OAuth) → Directory fetches raw data
 5. **Directory enriches profile** → Updates with:
    - Basic data + Bio + Value Proposition + Skills Section + Course Section + Relevant tabs
-6. **Employee can now use the system** → Profile enrichment is complete
+6. **Directory updates profile status to "enriched"** (but not yet approved)
+7. **Directory sends approval request to Company Profile**
+8. **HR sees approval requests** in Company Profile (pending enriched profiles)
+9. **HR reviews and approves/rejects** the enriched profile
+10. **If approved**: Employee profile status changes to "approved" → **Employee can now use the system** (learning, requests, etc.)
+11. **If rejected**: Employee profile remains "enriched" but not approved → Employee cannot use the system until approved
 
 ### Key Points:
 - Enrichment is **mandatory** - employee cannot use system until profile is enriched
+- **HR approval is required** - enriched profile must be approved by company before employee can use system
 - Employee must connect LinkedIn and GitHub themselves (OAuth on first login)
 - Basic profile is created from CSV data
 - Full profile is created after OAuth and enrichment
+- Approval ensures enriched profile (with external data) is suitable/appropriate for the company
 
 ### Implementation Impact:
 - **Backend**: Create endpoint for OAuth callbacks (LinkedIn, GitHub)
 - **Backend**: Create enrichment flow that calls Gemini AI + Skills Engine
+- **Backend**: Create approval request system (new table, repository, controller)
+- **Backend**: Add profile status field to employees table (`profile_status`: 'basic', 'enriched', 'approved', 'rejected')
+- **Backend**: Create `employee_profile_approvals` table
 - **Frontend**: Create "Enrich Your Profile" page (shown on first login)
 - **Frontend**: OAuth connection UI for LinkedIn and GitHub
 - **Frontend**: Profile enrichment status indicator
+- **Frontend**: "Pending Profile Approvals" section in Company Profile
+- **Frontend**: Approval/rejection UI for HR
+- **Frontend**: Access control - disable employee actions until approved
 
 ---
 
