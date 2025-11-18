@@ -37,7 +37,7 @@ After creating the app, you'll see:
 - **App Name**: EDUCORE Directory
 - **LinkedIn Page**: EDUCOREDirectory3
 - **Client ID**: `77p3yqar3ao4mc` (configured in Railway)
-- **Client Secret**: `WPL_AP1.0TYQiOuDG1cfTaSJ.DIFJSQ==` (configured in Railway)
+- **Client Secret**: `***` (configured in Railway - stored securely, not shown here)
 - **Privacy Policy URL**: `https://directory-3-two.vercel.app/`
 - **Status**: ✅ Credentials added to Railway
 
@@ -80,7 +80,7 @@ FRONTEND_URL=https://directory-3-two.vercel.app
 
 **✅ Current Railway Configuration:**
 - `LINKEDIN_CLIENT_ID=77p3yqar3ao4mc` ✅
-- `LINKEDIN_CLIENT_SECRET=WPL_AP1.0TYQiOuDG1cfTaSJ.DIFJSQ==` ✅
+- `LINKEDIN_CLIENT_SECRET=***` ✅ (configured securely in Railway)
 - `FRONTEND_URL=https://directory-3-two.vercel.app` (should be set)
 
 **Important Notes:**
