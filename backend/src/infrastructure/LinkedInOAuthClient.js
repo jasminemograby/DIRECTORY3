@@ -8,8 +8,11 @@ class LinkedInOAuthClient {
   constructor() {
     this.clientId = config.linkedin?.clientId || process.env.LINKEDIN_CLIENT_ID;
     this.clientSecret = config.linkedin?.clientSecret || process.env.LINKEDIN_CLIENT_SECRET;
-    this.redirectUri = config.linkedin?.redirectUri || process.env.LINKEDIN_REDIRECT_URI || 
+    // Get redirect URI - ensure no trailing slashes and exact match
+    const redirectUri = config.linkedin?.redirectUri || process.env.LINKEDIN_REDIRECT_URI || 
                       `${config.directory.baseUrl}/api/v1/oauth/linkedin/callback`;
+    // Remove any trailing slashes to ensure exact match with LinkedIn
+    this.redirectUri = redirectUri.replace(/\/+$/, '');
     
     // LinkedIn OAuth endpoints
     this.authorizationUrl = 'https://www.linkedin.com/oauth/v2/authorization';
@@ -49,6 +52,8 @@ class LinkedInOAuthClient {
     console.log('[LinkedInOAuthClient] Generating URL with:', {
       clientId: this.clientId ? 'present' : 'missing',
       redirectUri: this.redirectUri,
+      redirectUriLength: this.redirectUri.length,
+      redirectUriEncoded: encodeURIComponent(this.redirectUri),
       state: state ? 'present' : 'missing',
       scopes: this.scopes
     });
