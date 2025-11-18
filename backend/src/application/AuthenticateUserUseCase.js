@@ -99,6 +99,11 @@ class AuthenticateUserUseCase {
       const isFirstLogin = profileStatus === 'basic';
       const isProfileApproved = profileStatus === 'approved'; // Only approved profiles can use the system
 
+      // Check if LinkedIn and GitHub are already connected
+      const hasLinkedIn = !!(employee.linkedin_data && employee.linkedin_url);
+      const hasGitHub = !!(employee.github_data && employee.github_url);
+      const bothConnected = hasLinkedIn && hasGitHub;
+
       // Generate token using AuthProvider (in dummy mode, it will use DummyAuthProvider)
       // But we need to pass real employee data, so we'll generate token directly
       let token;
@@ -123,7 +128,10 @@ class AuthenticateUserUseCase {
           isHR: isHR,
           profileStatus: profileStatus,
           isFirstLogin: isFirstLogin,
-          isProfileApproved: isProfileApproved
+          isProfileApproved: isProfileApproved,
+          hasLinkedIn: hasLinkedIn,
+          hasGitHub: hasGitHub,
+          bothOAuthConnected: bothConnected
         }
       };
     } catch (error) {

@@ -74,7 +74,11 @@ export const AuthProvider = ({ children }) => {
           navigate(`/company/${result.user.companyId}`);
         } else {
           // Regular employee
-          if (result.user.isFirstLogin || result.user.profileStatus === 'basic') {
+          // If both LinkedIn and GitHub are already connected, go directly to profile
+          if (result.user.bothOAuthConnected) {
+            // Already connected - go to profile
+            navigate(`/employee/${result.user.id}`);
+          } else if (result.user.isFirstLogin || result.user.profileStatus === 'basic') {
             // First login - redirect to enrichment page
             navigate(`/enrich`);
           } else if (result.user.profileStatus === 'enriched' && !result.user.isProfileApproved) {

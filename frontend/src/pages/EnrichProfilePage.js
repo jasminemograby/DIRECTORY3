@@ -15,6 +15,14 @@ function EnrichProfilePage() {
   const [githubConnected, setGithubConnected] = useState(false);
   const [error, setError] = useState(null);
 
+  // Initialize connection status from user object
+  useEffect(() => {
+    if (user) {
+      setLinkedinConnected(user.hasLinkedIn || false);
+      setGithubConnected(user.hasGitHub || false);
+    }
+  }, [user]);
+
   // Check URL params for OAuth callback results
   useEffect(() => {
     const linkedinParam = searchParams.get('linkedin');
@@ -59,14 +67,14 @@ function EnrichProfilePage() {
     }
   }, [linkedinConnected, githubConnected, user, navigate]);
 
-  // Check if user already has LinkedIn connected
+  // Check if user already has both LinkedIn and GitHub connected - redirect to profile
   useEffect(() => {
-    if (user) {
-      // Check if LinkedIn is already connected (from user profile)
-      // This would come from the employee profile data
-      // For now, we'll check after fetching profile
+    if (user && user.bothOAuthConnected) {
+      // Both already connected - redirect to profile immediately
+      console.log('[EnrichProfilePage] Both OAuth already connected, redirecting to profile');
+      navigate(`/employee/${user.id}`);
     }
-  }, [user]);
+  }, [user, navigate]);
 
   if (!user) {
     return (
