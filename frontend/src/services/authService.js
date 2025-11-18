@@ -17,18 +17,24 @@ export const login = async (email, password) => {
       password
     });
 
+    console.log('[authService] Login response:', response.data);
+
     if (response.data && response.data.response) {
       const result = response.data.response;
+      console.log('[authService] Login result:', result);
+      
       if (result.success && result.token) {
         // Store token in localStorage
         localStorage.setItem('auth_token', result.token);
         localStorage.setItem('user', JSON.stringify(result.user));
+        console.log('[authService] Login successful, token stored');
         return {
           success: true,
           token: result.token,
           user: result.user
         };
       } else {
+        console.log('[authService] Login failed - no success or token:', result);
         return {
           success: false,
           error: result.error || 'Login failed'
@@ -36,12 +42,14 @@ export const login = async (email, password) => {
       }
     }
 
+    console.log('[authService] Unexpected response format:', response.data);
     return {
       success: false,
       error: 'Unexpected response format'
     };
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('[authService] Login error:', error);
+    console.error('[authService] Error response:', error.response?.data);
     const errorMessage = error.response?.data?.response?.error || 
                         error.message || 
                         'An error occurred during login. Please try again.';
