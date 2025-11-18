@@ -363,9 +363,9 @@ Companies choose approval policy:
 
 ### 5.2 Payload Directory Sends
 
-**Trigger**: During company registration OR update
+**Trigger**: During company registration (NOT on update - Decision Maker cannot be changed)
 
-**Endpoint**: `POST https://learner-ai-production.up.railway.app/api/fill-content-metrics`
+**Endpoint**: `POST https://learner-ai-backend-production.up.railway.app/api/fill-learner-ai-fields` ⚠️ **Note: Different endpoint name than other microservices**
 
 **Envelope**:
 ```json
@@ -391,9 +391,11 @@ Companies choose approval policy:
 
 **CSV Requirements**:
 - `learning_path_approval` (already exists: "manual" or "automatic")
-- `decision_maker_id` (NEW - needs to be added to CSV)
-- `decision_maker_name` (NEW - optional, can derive from employee data)
-- `decision_maker_email` (NEW - optional, can derive from employee data)
+- `decision_maker_id` (NEW - needs to be added to CSV, employee_id of Decision Maker)
+- `decision_maker_name` (Derived from employee data - no need in CSV)
+- `decision_maker_email` (Derived from employee data - no need in CSV)
+
+**Note**: Decision Maker cannot be changed after registration (nice to have for future)
 
 ### 5.3 Directory UI Requirements
 
@@ -584,12 +586,12 @@ Also requested **daily**, for system-wide analytics.
 ### New Fields Needed in Company CSV:
 
 1. **Company-level**:
-   - `passing_grade` (number, e.g., 70)
-   - `max_attempts` (number, e.g., 3)
-   - `exercises_limited` (boolean)
-   - `num_of_exercises` (number, e.g., 4)
-   - `decision_maker_id` (employee_id of Decision Maker, if manual approval)
-   - `website_url` (optional, for Management & Reporting)
+   - `passing_grade` (number, e.g., 70) - **REQUIRED** (if missing, ask company to fill)
+   - `max_attempts` (number, e.g., 3) - **REQUIRED** (if missing, ask company to fill)
+   - `exercises_limited` (boolean) - **REQUIRED** (if missing, ask company to fill)
+   - `num_of_exercises` (number, e.g., 4) - **REQUIRED** (if missing, ask company to fill)
+   - `decision_maker_id` (employee_id of Decision Maker, if manual approval) - **REQUIRED if manual approval** (if missing, ask company to fill)
+   - `website_url` (NOT needed - use `domain` field instead)
 
 2. **Employee-level** (already exists):
    - `ai_enabled` → maps to `aiEnabled`
@@ -630,7 +632,7 @@ Also requested **daily**, for system-wide analytics.
    - `exercises_limited` (BOOLEAN)
    - `num_of_exercises` (INTEGER)
    - `decision_maker_id` (UUID, references employees.id)
-   - `website_url` (VARCHAR)
+   - `website_url` (NOT needed - use existing `domain` field)
 
 2. **employees table**:
    - `relevance_score` (NUMERIC)

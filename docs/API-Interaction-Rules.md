@@ -24,6 +24,7 @@ Each microservice has a SINGLE generic endpoint:
 | **Course Builder** | `https://coursebuilderfs-production.up.railway.app/api/fill-content-metrics` |
 | **Content Studio** | `https://content-studio-production-76b6.up.railway.app/api/fill-content-metrics` |
 | **Skills Engine** | `https://skillsengine-production.up.railway.app/api/fill-content-metrics` |
+| **Learner AI** | `https://learner-ai-backend-production.up.railway.app/api/fill-learner-ai-fields` ⚠️ **Different endpoint** |
 | **Directory** | `https://directory3-production.up.railway.app/api/fill-content-metrics` |
 
 ### Envelope Structure

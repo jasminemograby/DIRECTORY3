@@ -33,13 +33,31 @@ This document summarizes the system logic, high-level architecture, and integrat
 ### Current Implementation Status
 ❌ **NOT YET IMPLEMENTED** - Critical new feature
 
+### Enrichment Flow (Clarified):
+
+1. **Company uploads CSV** → Directory creates company profile
+2. **Directory creates basic employee profiles** from CSV data
+3. **Employee logs in for first time** → Sees basic profile with:
+   - Name, email, team, department, role in company, etc.
+   - **Message asking to connect LinkedIn and GitHub** (mandatory)
+4. **Employee connects LinkedIn + GitHub** (OAuth on first login)
+5. **Directory fetches raw data** from LinkedIn and GitHub APIs
+6. **Directory enriches profile** using Gemini AI + Skills Engine
+7. **Employee profile updated** with full data (bio, skills, projects, etc.)
+8. **Employee can now use the system**
+
+### Key Points:
+- Enrichment is **mandatory** - employee cannot use system until profile is enriched
+- Employee must connect LinkedIn and GitHub themselves (OAuth)
+- This is a **one-time only** process (cannot reconnect later)
+
 ### External Integrations Required
 
 #### 2.1 Gemini AI Integration
 **Purpose**: Generate employee bio and project summaries
 
 **Process**:
-1. Directory collects raw employee data (from CSV + external APIs)
+1. Directory collects raw employee data (from LinkedIn + GitHub OAuth)
 2. Directory sends raw data to Gemini AI module
 3. Gemini AI returns:
    - Short professional bio for each employee
@@ -48,22 +66,31 @@ This document summarizes the system logic, high-level architecture, and integrat
 
 **Data Flow**:
 ```
-Directory → Gemini AI → Directory (bio + projects)
+Employee → OAuth (LinkedIn + GitHub) → Directory → Gemini AI → Directory (bio + projects)
 ```
 
 **UI Impact**: 
 - Employee Profile needs "Projects" section
 - Employee Profile needs "Bio" section (AI-generated)
+- "Enrich Your Profile" page on first login
+- OAuth connection buttons for LinkedIn and GitHub
 
 #### 2.2 External APIs (LinkedIn + GitHub)
 **Purpose**: Enrich employee profiles with external data
 
 **Process**:
-1. Directory queries LinkedIn API (OAuth)
-2. Directory queries GitHub API (OAuth)
-3. Raw data collected and sent to Skills Engine
+1. **Employee logs in for first time** → Sees basic profile
+2. **Employee clicks "Connect LinkedIn"** → OAuth flow
+3. **Employee clicks "Connect GitHub"** → OAuth flow
+4. Directory receives OAuth tokens
+5. Directory queries LinkedIn API with token
+6. Directory queries GitHub API with token
+7. Raw data collected and sent to Skills Engine
 
-**Note**: This is a ONE-TIME enrichment (as per requirements.md)
+**Note**: 
+- This is a ONE-TIME enrichment (as per requirements.md)
+- Employee initiates OAuth (not HR)
+- Mandatory step - employee cannot use system until completed
 
 #### 2.3 Skills Engine Integration
 **Purpose**: Normalize skills and identify skill gaps
@@ -299,7 +326,7 @@ Decision Maker → Learner AI (approve/reject)
 ❌ **NOT YET IMPLEMENTED** - Critical new feature
 
 ### Process
-1. Employee clicks "Verify Your Skills" in profile
+1. Employee clicks "Verify Your Skills" in profile (one-time only)
 2. Directory triggers Skills Engine verification process
 3. Skills Engine sends assessment request to Assessment microservice
 4. Employee completes assessments
@@ -307,11 +334,18 @@ Decision Maker → Learner AI (approve/reject)
 6. Skills Engine sends back to Directory:
    - List of verified skills
    - Updated relevance score
-7. "Verify Your Skills" button is hidden (one-time only)
+7. **"Verify Your Skills" button is permanently hidden** (one-time only)
 8. Directory updates employee profile with verified skills and relevance scores
 9. When employee completes new courses:
    - Skills Engine automatically checks for new verified skills
-   - Skills Engine updates Directory with newly verified skills
+   - Skills Engine **calls Directory's `/api/fill-content-metrics`** with updated skills
+   - Directory updates employee profile with newly verified skills
+   - **No button needed** - updates happen automatically
+
+### Key Points:
+- Button is **only for initial skill verification**
+- **NOT** for skill verification after course completion (that's automatic)
+- Button never reappears after first use
 
 **Data Flow**:
 ```
@@ -354,14 +388,18 @@ Skills Engine → Directory (verified skills + relevance score)
 
 ### 7.2 Course Completion Feedback
 **Process**:
-1. After course completion, Course Builder sends feedback data to Directory:
+1. After course completion, Course Builder sends feedback data to Directory via `/api/fill-content-metrics`:
    - feedback
    - course_id
    - course_name
    - learner_id
-2. Directory updates employee profile to display completed courses and feedback
+2. Directory checks if employee passed the exam (from Assessment integration)
 3. **Only courses with passed post-course exam** are displayed as completed
-4. **Failed courses**: If Assessment identifies new verified skills, Skills Engine updates Directory with new skills, but failed course is NOT shown under completed courses
+4. Directory updates employee profile to display completed courses and feedback
+5. **Failed courses**: 
+   - If Assessment identifies new verified skills, Skills Engine updates Directory with new skills
+   - But failed course is **NOT shown** under completed courses
+   - Skills are updated automatically (no button needed)
 
 **Integration Points**:
 - Course Builder (sends completion feedback)
