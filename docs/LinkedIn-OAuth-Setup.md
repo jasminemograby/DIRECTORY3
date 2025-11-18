@@ -13,12 +13,13 @@ This guide explains how to set up LinkedIn OAuth for employee profile enrichment
 
 ### Step 2: Fill in App Details
 - **App name**: Your app name (e.g., "EDUCORE Directory")
-- **LinkedIn Page**: Select or create a LinkedIn page for your company
+- **LinkedIn Page**: Select or create a LinkedIn page for your company (e.g., "EDUCOREDirectory3")
 - **Privacy Policy URL**: Your privacy policy URL (required)
   - **Option 1 (Recommended)**: Use the provided privacy policy page
-    - URL: `https://your-frontend-url.vercel.app/privacy-policy.html`
+    - URL: `https://directory-3-two.vercel.app/privacy-policy.html`
     - A privacy policy page is included in `frontend/public/privacy-policy.html`
     - Deploy your frontend to Vercel, and it will be accessible at this URL
+    - ✅ **Current Setup**: `https://directory-3-two.vercel.app/` (configured)
   - **Option 2**: Use your company's existing privacy policy URL
   - **Option 3 (Development)**: Use a temporary placeholder (e.g., `https://example.com/privacy`)
     - ⚠️ Note: LinkedIn may require a valid, accessible URL even for development
@@ -31,6 +32,14 @@ After creating the app, you'll see:
 - **Client Secret** (click "Show" to reveal)
 
 **Save these credentials** - you'll need them for Railway environment variables.
+
+**✅ Current Configuration:**
+- **App Name**: EDUCORE Directory
+- **LinkedIn Page**: EDUCOREDirectory3
+- **Client ID**: `77p3yqar3ao4mc` (configured in Railway)
+- **Client Secret**: `WPL_AP1.0TYQiOuDG1cfTaSJ.DIFJSQ==` (configured in Railway)
+- **Privacy Policy URL**: `https://directory-3-two.vercel.app/`
+- **Status**: ✅ Credentials added to Railway
 
 ---
 
@@ -66,8 +75,13 @@ Add the following variables:
 LINKEDIN_CLIENT_ID=your_client_id_here
 LINKEDIN_CLIENT_SECRET=your_client_secret_here
 LINKEDIN_REDIRECT_URI=https://directory3-production.up.railway.app/api/v1/oauth/linkedin/callback
-FRONTEND_URL=https://your-frontend-url.vercel.app
+FRONTEND_URL=https://directory-3-two.vercel.app
 ```
+
+**✅ Current Railway Configuration:**
+- `LINKEDIN_CLIENT_ID=77p3yqar3ao4mc` ✅
+- `LINKEDIN_CLIENT_SECRET=WPL_AP1.0TYQiOuDG1cfTaSJ.DIFJSQ==` ✅
+- `FRONTEND_URL=https://directory-3-two.vercel.app` (should be set)
 
 **Important Notes:**
 - Replace `your_client_id_here` with your actual Client ID from LinkedIn
@@ -183,9 +197,13 @@ A privacy policy page is included in the project at `frontend/public/privacy-pol
 1. **Deploy your frontend to Vercel** (if not already deployed)
 2. **The privacy policy will be automatically available at:**
    ```
-   https://your-frontend-url.vercel.app/privacy-policy.html
+   https://directory-3-two.vercel.app/privacy-policy.html
    ```
 3. **Use this URL** when creating your LinkedIn OAuth app
+
+**✅ Current Setup:**
+- Privacy Policy URL: `https://directory-3-two.vercel.app/` (configured in LinkedIn app)
+- Note: You can also use `https://directory-3-two.vercel.app/privacy-policy.html` for the full page
 
 **To customize the privacy policy:**
 
