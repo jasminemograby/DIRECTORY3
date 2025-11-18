@@ -9,29 +9,23 @@ If you're getting errors like `relation "employee_profile_approvals" does not ex
 1. Go to your Supabase project dashboard
 2. Navigate to **SQL Editor**
 3. Click **"New query"**
-4. Open the file: `database/migrations/002_add_profile_approvals.sql`
+4. Open the file: `database/migrations/001_initial_schema.sql`
 5. Copy the entire contents
 6. Paste into the SQL Editor
 7. Click **"Run"** (or press Ctrl+Enter)
-8. You should see success messages:
-   - ✅ employee_profile_approvals table created successfully
-   - ✅ profile_status column added to employees table
+8. The migration uses `CREATE TABLE IF NOT EXISTS` and `CREATE INDEX IF NOT EXISTS`, so it's safe to run multiple times
+9. You should see all tables created, including:
+   - ✅ employee_profile_approvals table
+   - ✅ profile_status column in employees table
 
-### Option 2: Run Full Migration (If starting fresh)
-
-1. Go to Supabase dashboard → **SQL Editor**
-2. Open `database/migrations/001_initial_schema.sql`
-3. Copy entire contents
-4. Paste and run in SQL Editor
-
-### Option 3: Using Railway CLI (If configured)
+### Option 2: Using Railway CLI (If configured)
 
 ```bash
 # Connect to Railway database
 railway connect
 
 # Run migration
-psql $DATABASE_URL -f database/migrations/002_add_profile_approvals.sql
+psql $DATABASE_URL -f database/migrations/001_initial_schema.sql
 ```
 
 ### Verification
