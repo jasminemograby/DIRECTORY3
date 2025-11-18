@@ -214,9 +214,14 @@ class DummyAuthProvider extends AuthProvider {
     // In dummy mode, check for Authorization header or custom header
     const authHeader = headers.authorization || headers.Authorization;
     
+    console.log('[DummyAuthProvider] Headers received:', Object.keys(headers));
+    console.log('[DummyAuthProvider] Authorization header:', authHeader ? `${authHeader.substring(0, 30)}...` : 'missing');
+    
     if (authHeader) {
       // Remove "Bearer " prefix if present
-      return authHeader.replace(/^Bearer\s+/i, '').trim();
+      const token = authHeader.replace(/^Bearer\s+/i, '').trim();
+      console.log('[DummyAuthProvider] Extracted token:', token ? `${token.substring(0, 30)}...` : 'null');
+      return token;
     }
 
     // Also check for custom header (for testing)

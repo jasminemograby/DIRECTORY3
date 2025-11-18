@@ -40,7 +40,12 @@ const authMiddleware = async (req, res, next) => {
     const provider = getAuthProvider();
     const token = provider.extractTokenFromHeaders(req.headers);
 
+    console.log('[authMiddleware] Request path:', req.path);
+    console.log('[authMiddleware] Authorization header:', req.headers.authorization ? 'present' : 'missing');
+    console.log('[authMiddleware] Extracted token:', token ? `${token.substring(0, 20)}...` : 'null');
+
     if (!token) {
+      console.log('[authMiddleware] No token found in request');
       return res.status(401).json({
         requester_service: 'directory_service',
         response: {
@@ -50,7 +55,9 @@ const authMiddleware = async (req, res, next) => {
     }
 
     // Validate token
+    console.log('[authMiddleware] Validating token...');
     const validationResult = await provider.validateToken(token);
+    console.log('[authMiddleware] Validation result:', validationResult.valid ? 'valid' : 'invalid', validationResult.error || '');
 
     if (!validationResult.valid) {
       return res.status(401).json({
@@ -64,6 +71,7 @@ const authMiddleware = async (req, res, next) => {
     // Attach user to request
     req.user = validationResult.user;
     req.token = token;
+    console.log('[authMiddleware] User authenticated:', req.user.email, 'ID:', req.user.id);
 
     next();
   } catch (error) {
