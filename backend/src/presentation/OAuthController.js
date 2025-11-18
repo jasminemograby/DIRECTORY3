@@ -73,16 +73,24 @@ class OAuthController {
 
       // Handle callback
       const result = await this.connectLinkedInUseCase.handleCallback(code, state);
+      console.log('[OAuthController] LinkedIn connected successfully for employee:', result.employee.id);
 
       // Check if both OAuth connections are complete and trigger enrichment
       const employeeId = result.employee.id;
       const isReady = await this.enrichProfileUseCase.isReadyForEnrichment(employeeId);
       
       if (isReady) {
+        console.log('[OAuthController] Both OAuth connections complete, triggering enrichment...');
         // Trigger enrichment in background (don't wait for it)
-        this.enrichProfileUseCase.enrichProfile(employeeId).catch(error => {
-          console.error('[OAuthController] Background enrichment failed:', error);
-        });
+        this.enrichProfileUseCase.enrichProfile(employeeId)
+          .then(enrichmentResult => {
+            console.log('[OAuthController] ✅ Profile enrichment completed:', enrichmentResult);
+          })
+          .catch(error => {
+            console.error('[OAuthController] ❌ Background enrichment failed:', error);
+          });
+      } else {
+        console.log('[OAuthController] Waiting for GitHub connection before enrichment');
       }
 
       // Check if both OAuth connections are complete
@@ -156,16 +164,24 @@ class OAuthController {
 
       // Handle callback
       const result = await this.connectGitHubUseCase.handleCallback(code, state);
+      console.log('[OAuthController] GitHub connected successfully for employee:', result.employee.id);
 
       // Check if both OAuth connections are complete and trigger enrichment
       const employeeId = result.employee.id;
       const isReady = await this.enrichProfileUseCase.isReadyForEnrichment(employeeId);
       
       if (isReady) {
+        console.log('[OAuthController] Both OAuth connections complete, triggering enrichment...');
         // Trigger enrichment in background (don't wait for it)
-        this.enrichProfileUseCase.enrichProfile(employeeId).catch(error => {
-          console.error('[OAuthController] Background enrichment failed:', error);
-        });
+        this.enrichProfileUseCase.enrichProfile(employeeId)
+          .then(enrichmentResult => {
+            console.log('[OAuthController] ✅ Profile enrichment completed:', enrichmentResult);
+          })
+          .catch(error => {
+            console.error('[OAuthController] ❌ Background enrichment failed:', error);
+          });
+      } else {
+        console.log('[OAuthController] Waiting for LinkedIn connection before enrichment');
       }
 
       // Redirect back to enrich page
