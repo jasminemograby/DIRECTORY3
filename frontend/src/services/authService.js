@@ -17,11 +17,14 @@ export const login = async (email, password) => {
       password
     });
 
-    console.log('[authService] Login response:', response.data);
+    console.log('[authService] Login response:', JSON.stringify(response.data, null, 2));
 
     if (response.data && response.data.response) {
       const result = response.data.response;
-      console.log('[authService] Login result:', result);
+      console.log('[authService] Login result:', JSON.stringify(result, null, 2));
+      console.log('[authService] result.success:', result.success);
+      console.log('[authService] result.token:', result.token);
+      console.log('[authService] result.user:', result.user);
       
       if (result.success && result.token) {
         // Store token in localStorage
