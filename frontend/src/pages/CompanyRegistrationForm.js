@@ -86,12 +86,20 @@ function CompanyRegistrationForm() {
     try {
       const response = await registerCompany(formData);
       
-      if (response && response.response && response.response.company_id) {
+      // Response structure after API interceptor parsing:
+      // response.data = { requester_service: '...', response: { company_id: '...', ... } }
+      // So we access: response.data.response.company_id
+      console.log('Registration response:', response);
+      
+      const companyId = response?.response?.company_id || response?.data?.response?.company_id;
+      
+      if (companyId) {
         // Navigate to verification page with company ID
         // Verification is automatically triggered on the backend
-        navigate(`/verify/${response.response.company_id}`);
+        navigate(`/verify/${companyId}`);
       } else {
-        setErrors({ submit: 'Registration failed. Please try again.' });
+        console.error('Unexpected response format:', response);
+        setErrors({ submit: 'Registration failed. Please check the response format.' });
       }
     } catch (error) {
       console.error('Registration error:', error);

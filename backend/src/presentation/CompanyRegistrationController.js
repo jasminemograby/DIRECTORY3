@@ -23,10 +23,8 @@ class CompanyRegistrationController {
       const result = await this.registerCompanyUseCase.execute(companyData);
       
       // Only send success response if everything succeeded
-      res.status(201).json({
-        requester_service: 'directory_service',
-        response: result
-      });
+      // Note: responseFormatter middleware will wrap this in the standard format
+      res.status(201).json(result);
     } catch (error) {
       // Handle validation errors (400 Bad Request)
       if (error.message.includes('already exists') || 
@@ -35,11 +33,9 @@ class CompanyRegistrationController {
           error.message.includes('Invalid') ||
           error.message.includes('format')) {
         console.error('Validation error:', error.message);
+        // Note: responseFormatter middleware will wrap this in the standard format
         return res.status(400).json({
-          requester_service: 'directory_service',
-          response: {
-            error: error.message
-          }
+          error: error.message
         });
       }
 
@@ -48,19 +44,15 @@ class CompanyRegistrationController {
       
       // Check if it's a database constraint error
       if (error.code === '23505') { // Unique violation
+        // Note: responseFormatter middleware will wrap this in the standard format
         return res.status(400).json({
-          requester_service: 'directory_service',
-          response: {
-            error: 'A company with this domain already exists. Please use a different domain or contact support if you believe this is an error.'
-          }
+          error: 'A company with this domain already exists. Please use a different domain or contact support if you believe this is an error.'
         });
       }
       
+      // Note: responseFormatter middleware will wrap this in the standard format
       res.status(500).json({
-        requester_service: 'directory_service',
-        response: {
-          error: 'An error occurred during company registration. No data was saved. Please try again.'
-        }
+        error: 'An error occurred during company registration. No data was saved. Please try again.'
       });
     }
   }
