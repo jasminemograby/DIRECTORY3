@@ -15,6 +15,13 @@ This guide explains how to set up LinkedIn OAuth for employee profile enrichment
 - **App name**: Your app name (e.g., "EDUCORE Directory")
 - **LinkedIn Page**: Select or create a LinkedIn page for your company
 - **Privacy Policy URL**: Your privacy policy URL (required)
+  - **Option 1 (Recommended)**: Use the provided privacy policy page
+    - URL: `https://your-frontend-url.vercel.app/privacy-policy.html`
+    - A privacy policy page is included in `frontend/public/privacy-policy.html`
+    - Deploy your frontend to Vercel, and it will be accessible at this URL
+  - **Option 2**: Use your company's existing privacy policy URL
+  - **Option 3 (Development)**: Use a temporary placeholder (e.g., `https://example.com/privacy`)
+    - ⚠️ Note: LinkedIn may require a valid, accessible URL even for development
 - **App logo**: Upload a logo (optional but recommended)
 - **App usage**: Select "Sign In with LinkedIn using OpenID Connect"
 
