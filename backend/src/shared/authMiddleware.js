@@ -19,6 +19,13 @@ function getAuthProvider() {
 }
 
 /**
+ * Reset auth provider (useful for testing or mode changes)
+ */
+function resetAuthProvider() {
+  authProvider = null;
+}
+
+/**
  * Authentication Middleware
  * Validates JWT token from request headers and attaches user to request
  * 
@@ -126,6 +133,7 @@ const hrOnlyMiddleware = (req, res, next) => {
 module.exports = {
   authMiddleware,
   optionalAuthMiddleware,
-  hrOnlyMiddleware
+  hrOnlyMiddleware,
+  resetAuthProvider
 };
 

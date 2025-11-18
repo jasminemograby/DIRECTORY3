@@ -9,6 +9,7 @@ const CompanyVerificationController = require('./presentation/CompanyVerificatio
 const CSVUploadController = require('./presentation/CSVUploadController');
 const CompanyProfileController = require('./presentation/CompanyProfileController');
 const EmployeeController = require('./presentation/EmployeeController');
+const AuthController = require('./presentation/AuthController');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -43,9 +44,25 @@ const companyVerificationController = new CompanyVerificationController();
 const csvUploadController = new CSVUploadController();
 const companyProfileController = new CompanyProfileController();
 const employeeController = new EmployeeController();
+const authController = new AuthController();
 
 // API Routes
 const apiRouter = express.Router();
+
+// Authentication
+apiRouter.post('/auth/login', (req, res, next) => {
+  authController.login(req, res, next);
+});
+
+apiRouter.post('/auth/logout', (req, res, next) => {
+  authController.logout(req, res, next);
+});
+
+// Get current user (requires authentication)
+const { authMiddleware } = require('./shared/authMiddleware');
+apiRouter.get('/auth/me', authMiddleware, (req, res, next) => {
+  authController.getCurrentUser(req, res, next);
+});
 
 // Company Registration
 apiRouter.post('/companies/register', (req, res, next) => {
