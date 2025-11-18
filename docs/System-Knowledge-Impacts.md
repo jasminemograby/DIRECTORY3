@@ -371,13 +371,12 @@ This document identifies the impacts of the System Logic & High-Level Architectu
   - If yes, where in UI?
   - What happens to existing learning paths when policy changes?
 
-### 8. Redirect URLs
-**Question**: How do redirects work?
-- Description mentions many redirects to other microservices
-- **Clarification needed**: 
-  - Do we need to store base URLs for each microservice?
-  - How do we pass user context (employee_id, company_id, etc.)?
-  - Do we use query parameters, headers, or tokens?
+### 8. Redirect URLs ✅ ANSWERED
+**Answer**: 
+- URLs stored in config (see API Interaction Rules)
+- All microservices use `/api/fill-content-metrics` endpoint
+- User context passed in `payload` field of envelope structure
+- Redirects likely use query parameters or tokens (to be confirmed in third description)
 
 ---
 
