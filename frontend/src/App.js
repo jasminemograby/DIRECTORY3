@@ -11,8 +11,8 @@ import './App.css';
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <div className="App">
           <div className="bg-animation"></div>
           <Routes>
@@ -24,8 +24,8 @@ function App() {
             <Route path="/company/:companyId" element={<CompanyProfilePage />} />
           </Routes>
         </div>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 
