@@ -23,16 +23,23 @@ class CompanyRegistrationController {
       const result = await this.registerCompanyUseCase.execute(companyData);
       
       // Only send success response if everything succeeded
-      res.status(201).json(result);
+      res.status(201).json({
+        requester_service: 'directory_service',
+        response: result
+      });
     } catch (error) {
       // Handle validation errors (400 Bad Request)
       if (error.message.includes('already exists') || 
+          error.message.includes('already completed registration') ||
           error.message.includes('required') ||
           error.message.includes('Invalid') ||
           error.message.includes('format')) {
         console.error('Validation error:', error.message);
         return res.status(400).json({
-          error: error.message
+          requester_service: 'directory_service',
+          response: {
+            error: error.message
+          }
         });
       }
 
@@ -42,12 +49,18 @@ class CompanyRegistrationController {
       // Check if it's a database constraint error
       if (error.code === '23505') { // Unique violation
         return res.status(400).json({
-          error: 'A company with this domain already exists. Please use a different domain or contact support if you believe this is an error.'
+          requester_service: 'directory_service',
+          response: {
+            error: 'A company with this domain already exists. Please use a different domain or contact support if you believe this is an error.'
+          }
         });
       }
       
       res.status(500).json({
-        error: 'An error occurred during company registration. No data was saved. Please try again.'
+        requester_service: 'directory_service',
+        response: {
+          error: 'An error occurred during company registration. No data was saved. Please try again.'
+        }
       });
     }
   }

@@ -95,8 +95,31 @@ function CompanyRegistrationForm() {
       }
     } catch (error) {
       console.error('Registration error:', error);
+      console.error('Registration error response:', error.response?.data);
+      
+      // Extract error message from response
+      let errorMessage = 'An error occurred during registration. Please try again.';
+      
+      if (error.response?.data) {
+        // Check if response follows standard format
+        if (error.response.data.response?.error) {
+          errorMessage = error.response.data.response.error;
+        } else if (error.response.data.error) {
+          errorMessage = error.response.data.error;
+        } else if (typeof error.response.data === 'string') {
+          // Try to parse if it's a stringified JSON
+          try {
+            const parsed = JSON.parse(error.response.data);
+            errorMessage = parsed.response?.error || parsed.error || errorMessage;
+          } catch (e) {
+            // Not JSON, use as-is
+            errorMessage = error.response.data;
+          }
+        }
+      }
+      
       setErrors({ 
-        submit: error.response?.data?.response?.error || 'An error occurred during registration. Please try again.' 
+        submit: errorMessage
       });
     } finally {
       setIsSubmitting(false);
