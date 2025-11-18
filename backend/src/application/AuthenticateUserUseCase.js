@@ -95,10 +95,9 @@ class AuthenticateUserUseCase {
 
       // Check if profile is enriched (for routing logic)
       // profile_status: 'basic', 'enriched', 'approved', 'rejected'
-      // Note: profile_status field will be added in future migration for HR approval workflow
       const profileStatus = employee.profile_status || 'basic';
       const isFirstLogin = profileStatus === 'basic';
-      const isProfileApproved = profileStatus === 'approved' || profileStatus === 'basic'; // For now, allow basic profiles
+      const isProfileApproved = profileStatus === 'approved'; // Only approved profiles can use the system
 
       // Generate token using AuthProvider (in dummy mode, it will use DummyAuthProvider)
       // But we need to pass real employee data, so we'll generate token directly
