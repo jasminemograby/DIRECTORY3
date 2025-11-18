@@ -3,6 +3,7 @@
 
 const CSVParser = require('../infrastructure/CSVParser');
 const CSVValidator = require('../infrastructure/CSVValidator');
+const DatabaseConstraintValidator = require('../infrastructure/DatabaseConstraintValidator');
 const CompanyRepository = require('../infrastructure/CompanyRepository');
 const DepartmentRepository = require('../infrastructure/DepartmentRepository');
 const TeamRepository = require('../infrastructure/TeamRepository');
