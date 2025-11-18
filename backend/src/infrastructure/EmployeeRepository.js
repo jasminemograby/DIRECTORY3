@@ -425,6 +425,82 @@ class EmployeeRepository {
   }
 
   /**
+   * Update employee profile status
+   * @param {string} employeeId - Employee UUID
+   * @param {string} status - Profile status ('basic', 'enriched', 'approved', 'rejected')
+   * @param {Object} client - Optional database client
+   * @returns {Promise<Object>} Updated employee
+   */
+  async updateProfileStatus(employeeId, status, client = null) {
+    const queryRunner = client || this.pool;
+    
+    const query = `
+      UPDATE employees
+      SET profile_status = $1,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $2
+      RETURNING *
+    `;
+
+    const result = await queryRunner.query(query, [status, employeeId]);
+    return result.rows[0];
+  }
+
+  /**
+   * Get trainer settings for an employee
+   * @param {string} employeeId - Employee UUID
+   * @returns {Promise<Object|null>} Trainer settings or null
+   */
+  async getTrainerSettings(employeeId) {
+    const query = 'SELECT * FROM trainer_settings WHERE employee_id = $1';
+    const result = await this.pool.query(query, [employeeId]);
+    return result.rows[0] || null;
+  }
+
+  /**
+   * Update trainer settings
+   * @param {string} employeeId - Employee UUID
+   * @param {boolean} aiEnabled - AI enabled flag
+   * @param {boolean} publicPublishEnable - Public publish flag
+   * @param {Object} client - Optional database client for transaction
+   * @returns {Promise<Object>} Updated settings
+   */
+  async updateTrainerSettings(employeeId, aiEnabled, publicPublishEnable, client = null) {
+    const query = `
+      UPDATE trainer_settings
+      SET ai_enabled = $1,
+          public_publish_enable = $2,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE employee_id = $3
+      RETURNING *
+    `;
+    const queryRunner = client || this.pool;
+    const result = await queryRunner.query(query, [aiEnabled, publicPublishEnable, employeeId]);
+    
+    if (result.rows.length === 0) {
+      // If no settings exist, create them
+      return await this.createTrainerSettings(employeeId, aiEnabled, publicPublishEnable, client);
+    }
+    
+    return result.rows[0];
+  }
+
+  /**
+   * Check if employee is a trainer
+   * @param {string} employeeId - Employee UUID
+   * @returns {Promise<boolean>} True if employee has TRAINER role
+   */
+  async isTrainer(employeeId) {
+    const query = `
+      SELECT COUNT(*) as count
+      FROM employee_roles
+      WHERE employee_id = $1 AND role_type = 'TRAINER'
+    `;
+    const result = await this.pool.query(query, [employeeId]);
+    return parseInt(result.rows[0].count) > 0;
+  }
+
+  /**
    * Update LinkedIn data for an employee
    * @param {string} employeeId - Employee UUID
    * @param {string} linkedinUrl - LinkedIn profile URL
@@ -494,12 +570,13 @@ class EmployeeRepository {
     }
 
     try {
-      // Update employee bio and enrichment flags
+      // Update employee bio, enrichment flags, and profile status
       const updateQuery = `
         UPDATE employees
         SET bio = $1,
             enrichment_completed = TRUE,
             enrichment_completed_at = CURRENT_TIMESTAMP,
+            profile_status = 'enriched',
             updated_at = CURRENT_TIMESTAMP
         WHERE id = $2
         RETURNING *

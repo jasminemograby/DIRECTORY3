@@ -5,6 +5,7 @@ const CompanyRepository = require('../infrastructure/CompanyRepository');
 const DepartmentRepository = require('../infrastructure/DepartmentRepository');
 const TeamRepository = require('../infrastructure/TeamRepository');
 const EmployeeRepository = require('../infrastructure/EmployeeRepository');
+const EmployeeProfileApprovalRepository = require('../infrastructure/EmployeeProfileApprovalRepository');
 
 class GetCompanyProfileUseCase {
   constructor() {
@@ -12,6 +13,7 @@ class GetCompanyProfileUseCase {
     this.departmentRepository = new DepartmentRepository();
     this.teamRepository = new TeamRepository();
     this.employeeRepository = new EmployeeRepository();
+    this.approvalRepository = new EmployeeProfileApprovalRepository();
   }
 
   /**
@@ -37,13 +39,17 @@ class GetCompanyProfileUseCase {
     // Calculate metrics
     const metrics = this.calculateMetrics(departments, teams, employees);
 
+    // Get pending profile approvals (for HR view)
+    const pendingApprovals = await this.approvalRepository.findPendingByCompanyId(companyId);
+
     return {
       company,
       departments,
       teams,
       employees,
       hierarchy,
-      metrics
+      metrics,
+      pending_approvals: pendingApprovals
     };
   }
 

@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS employees (
     github_data JSONB,
     enrichment_completed BOOLEAN DEFAULT FALSE,
     enrichment_completed_at TIMESTAMP,
+    profile_status VARCHAR(50) DEFAULT 'basic' CHECK (profile_status IN ('basic', 'enriched', 'approved', 'rejected')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(company_id, employee_id)
@@ -147,8 +148,27 @@ CREATE TABLE IF NOT EXISTS company_registration_requests (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Employee profile approvals table (HR approval workflow)
+CREATE TABLE IF NOT EXISTS employee_profile_approvals (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    employee_id UUID NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+    company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+    enriched_at TIMESTAMP,
+    requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    reviewed_at TIMESTAMP,
+    reviewed_by UUID REFERENCES employees(id) ON DELETE SET NULL,
+    rejection_reason TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(employee_id)
+);
+
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_companies_domain ON companies(domain);
+CREATE INDEX IF NOT EXISTS idx_employees_profile_status ON employees(profile_status);
+CREATE INDEX IF NOT EXISTS idx_employee_profile_approvals_company_status ON employee_profile_approvals(company_id, status);
+CREATE INDEX IF NOT EXISTS idx_employee_profile_approvals_employee ON employee_profile_approvals(employee_id);
 CREATE INDEX IF NOT EXISTS idx_employees_email ON employees(email);
 CREATE INDEX IF NOT EXISTS idx_employees_company_employee_id ON employees(company_id, employee_id);
 CREATE INDEX IF NOT EXISTS idx_departments_company_department_id ON departments(company_id, department_id);

@@ -4,12 +4,14 @@
 const EmployeeRepository = require('../infrastructure/EmployeeRepository');
 const GeminiAPIClient = require('../infrastructure/GeminiAPIClient');
 const MockDataService = require('../infrastructure/MockDataService');
+const EmployeeProfileApprovalRepository = require('../infrastructure/EmployeeProfileApprovalRepository');
 
 class EnrichProfileUseCase {
   constructor() {
     this.employeeRepository = new EmployeeRepository();
     this.geminiClient = new GeminiAPIClient();
     this.mockDataService = new MockDataService();
+    this.approvalRepository = new EmployeeProfileApprovalRepository();
   }
 
   /**
@@ -76,12 +78,21 @@ class EnrichProfileUseCase {
         }
       }
 
-      // Update employee profile with enriched data
+      // Update employee profile with enriched data (sets profile_status to 'enriched')
       const updatedEmployee = await this.employeeRepository.updateEnrichment(
         employeeId,
         bio,
         projectSummaries
       );
+
+      // Create approval request for HR review
+      const approvalRequest = await this.approvalRepository.createApprovalRequest({
+        employee_id: employeeId,
+        company_id: employee.company_id,
+        enriched_at: new Date()
+      });
+
+      console.log('[EnrichProfileUseCase] ✅ Approval request created:', approvalRequest.id);
 
       return {
         success: true,
@@ -91,7 +102,13 @@ class EnrichProfileUseCase {
           bio: updatedEmployee.bio,
           enrichment_completed: updatedEmployee.enrichment_completed,
           enrichment_completed_at: updatedEmployee.enrichment_completed_at,
+          profile_status: updatedEmployee.profile_status,
           project_summaries_count: projectSummaries.length
+        },
+        approval_request: {
+          id: approvalRequest.id,
+          status: approvalRequest.status,
+          requested_at: approvalRequest.requested_at
         }
       };
     } catch (error) {

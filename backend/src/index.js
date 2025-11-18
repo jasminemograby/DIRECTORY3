@@ -12,6 +12,8 @@ const EmployeeController = require('./presentation/EmployeeController');
 const AuthController = require('./presentation/AuthController');
 const OAuthController = require('./presentation/OAuthController');
 const EnrichmentController = require('./presentation/EnrichmentController');
+const TrainerController = require('./presentation/TrainerController');
+const EmployeeProfileApprovalController = require('./presentation/EmployeeProfileApprovalController');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -49,6 +51,8 @@ const employeeController = new EmployeeController();
 const authController = new AuthController();
 const oauthController = new OAuthController();
 const enrichmentController = new EnrichmentController();
+const approvalController = new EmployeeProfileApprovalController();
+const trainerController = new TrainerController();
 
 // API Routes
 const apiRouter = express.Router();
@@ -135,6 +139,36 @@ apiRouter.post('/employees/:employeeId/enrich', authMiddleware, (req, res, next)
 
 apiRouter.get('/employees/:employeeId/enrichment-status', authMiddleware, (req, res, next) => {
   enrichmentController.getEnrichmentStatus(req, res, next);
+});
+
+// Profile Approval Routes (HR only)
+apiRouter.get('/companies/:id/profile-approvals', authMiddleware, (req, res, next) => {
+  approvalController.getPendingApprovals(req, res, next);
+});
+
+apiRouter.post('/companies/:id/profile-approvals/:approvalId/approve', authMiddleware, (req, res, next) => {
+  approvalController.approveProfile(req, res, next);
+});
+
+apiRouter.post('/companies/:id/profile-approvals/:approvalId/reject', authMiddleware, (req, res, next) => {
+  approvalController.rejectProfile(req, res, next);
+});
+
+apiRouter.get('/employees/:id/approval-status', authMiddleware, (req, res, next) => {
+  approvalController.getApprovalStatus(req, res, next);
+});
+
+// Trainer Routes
+apiRouter.get('/employees/:employeeId/trainer-settings', authMiddleware, (req, res, next) => {
+  trainerController.getTrainerSettings(req, res, next);
+});
+
+apiRouter.put('/employees/:employeeId/trainer-settings', authMiddleware, (req, res, next) => {
+  trainerController.updateTrainerSettings(req, res, next);
+});
+
+apiRouter.get('/employees/:employeeId/courses-taught', authMiddleware, (req, res, next) => {
+  trainerController.getCoursesTaught(req, res, next);
 });
 
 app.use('/api/v1', apiRouter);

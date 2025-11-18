@@ -8,9 +8,11 @@ import EmployeeList from './EmployeeList';
 import CompanyAnalyticsDashboard from './CompanyAnalyticsDashboard';
 import PendingRequestsSection from './PendingRequestsSection';
 import EnrollmentSection from './EnrollmentSection';
+import PendingProfileApprovals from './PendingProfileApprovals';
 
-function CompanyDashboard({ company, departments, teams, employees, hierarchy, metrics, onEmployeeClick, companyId }) {
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'dashboard', 'hierarchy', 'employees', 'enrollment', 'requests'
+function CompanyDashboard({ company, departments, teams, employees, hierarchy, metrics, pendingApprovals = [], onEmployeeClick, companyId }) {
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'dashboard', 'hierarchy', 'employees', 'enrollment', 'requests', 'approvals'
+  const [refreshKey, setRefreshKey] = useState(0);
 
   return (
     <div className="w-full space-y-6">
@@ -100,6 +102,28 @@ function CompanyDashboard({ company, departments, teams, employees, hierarchy, m
         >
           Pending Requests
         </button>
+        <button
+          onClick={() => setActiveTab('approvals')}
+          className={`px-4 py-2 font-medium transition-colors relative ${
+            activeTab === 'approvals'
+              ? 'border-b-2 border-teal-600 text-teal-600'
+              : 'text-gray-600 hover:text-gray-800'
+          }`}
+          style={{
+            color: activeTab === 'approvals' ? 'var(--border-focus)' : 'var(--text-secondary)',
+            borderBottomColor: activeTab === 'approvals' ? 'var(--border-focus)' : 'transparent'
+          }}
+        >
+          Profile Approvals
+          {pendingApprovals.length > 0 && (
+            <span 
+              className="ml-2 px-2 py-0.5 text-xs rounded-full text-white"
+              style={{ background: 'rgb(239, 68, 68)' }}
+            >
+              {pendingApprovals.length}
+            </span>
+          )}
+        </button>
       </div>
 
       {/* Tab Content */}
@@ -179,6 +203,26 @@ function CompanyDashboard({ company, departments, teams, employees, hierarchy, m
         {activeTab === 'requests' && (
           <div>
             <PendingRequestsSection companyId={companyId} />
+          </div>
+        )}
+
+        {activeTab === 'approvals' && (
+          <div>
+            <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
+              Pending Profile Approvals
+            </h3>
+            <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+              Review and approve enriched employee profiles. Employees can only use the system after their profile is approved.
+            </p>
+            <PendingProfileApprovals
+              approvals={pendingApprovals}
+              companyId={companyId}
+              onApprovalUpdate={() => {
+                // Trigger page refresh to reload data
+                setRefreshKey(prev => prev + 1);
+                window.location.reload();
+              }}
+            />
           </div>
         )}
       </div>

@@ -103,7 +103,10 @@ function CompanyProfilePage() {
           employees={profileData.employees}
           hierarchy={profileData.hierarchy}
           metrics={profileData.metrics}
-          onEmployeeClick={handleEmployeeClick}
+          pendingApprovals={profileData.pending_approvals || []}
+          onEmployeeClick={(employee) => {
+            navigate(`/employee/${employee.id}`);
+          }}
           companyId={companyId}
         />
       </div>
