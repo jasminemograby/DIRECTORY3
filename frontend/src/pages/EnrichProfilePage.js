@@ -116,11 +116,14 @@ function EnrichProfilePage() {
   }
 
   // If no user after loading, redirect to login
-  if (!user) {
-    // Use useEffect to avoid calling navigate during render
-    React.useEffect(() => {
+  useEffect(() => {
+    if (!authLoading && !user) {
+      console.log('[EnrichProfilePage] No user found, redirecting to login');
       navigate('/login');
-    }, [navigate]);
+    }
+  }, [authLoading, user, navigate]);
+
+  if (!user && !authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
