@@ -177,24 +177,67 @@ function EmployeeProfilePage() {
 
         {/* Header */}
         <div className="mb-8">
+          {/* Profile Photo and Name */}
+          <div className="flex items-center gap-6 mb-6">
+            {employee.profile_photo_url ? (
+              <img
+                src={employee.profile_photo_url}
+                alt={employee.full_name || 'Profile'}
+                className="w-24 h-24 rounded-full object-cover border-2"
+                style={{
+                  borderColor: 'var(--border-default, #e2e8f0)',
+                  boxShadow: 'var(--shadow-card, 0 1px 3px rgba(0, 0, 0, 0.1))'
+                }}
+                onError={(e) => {
+                  // Fallback to avatar initial if image fails to load
+                  e.target.style.display = 'none';
+                  const fallback = e.target.nextSibling;
+                  if (fallback) fallback.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <div
+              className={`w-24 h-24 rounded-full flex items-center justify-center text-3xl font-semibold text-white ${
+                employee.profile_photo_url ? 'hidden' : ''
+              }`}
+              style={{
+                background: 'var(--gradient-primary, linear-gradient(135deg, #065f46, #047857))',
+                boxShadow: 'var(--shadow-card, 0 1px 3px rgba(0, 0, 0, 0.1))'
+              }}
+            >
+              {(employee.full_name || employee.email || 'U').charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h1 
+                className="text-3xl font-bold mb-2"
+                style={{ color: 'var(--text-primary, #1e293b)' }}
+              >
+                {employee.full_name || employee.email || 'Employee'}
+              </h1>
+              {employee.current_role_in_company && (
+                <p 
+                  className="text-lg"
+                  style={{ color: 'var(--text-secondary, #64748b)' }}
+                >
+                  {employee.current_role_in_company}
+                </p>
+              )}
+              {employee.email && (
+                <p 
+                  className="text-sm mt-1"
+                  style={{ color: 'var(--text-muted, #94a3b8)' }}
+                >
+                  {employee.email}
+                </p>
+              )}
+            </div>
+          </div>
           <button
             onClick={() => navigate(-1)}
             className="mb-4 text-sm text-teal-600 hover:text-teal-700"
           >
             ← Back
           </button>
-          <h1 
-            className="text-3xl font-bold mb-2"
-            style={{ color: 'var(--text-primary)' }}
-          >
-            {employee.full_name || 'Employee Profile'}
-          </h1>
-          <p 
-            className="text-lg"
-            style={{ color: 'var(--text-secondary)' }}
-          >
-            {employee.current_role_in_company || 'Employee'}
-          </p>
         </div>
 
         {/* Profile Card */}

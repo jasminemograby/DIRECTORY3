@@ -125,6 +125,7 @@ class AuthenticateUserUseCase {
           employeeId: employee.employee_id,
           companyId: employee.company_id,
           fullName: employee.full_name,
+          profilePhotoUrl: employee.profile_photo_url || null,
           isHR: isHR,
           profileStatus: profileStatus,
           isFirstLogin: isFirstLogin,

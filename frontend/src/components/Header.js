@@ -126,6 +126,27 @@ function Header() {
                   e.currentTarget.style.background = 'transparent';
                 }}
               >
+                {user.profilePhotoUrl ? (
+                  <img
+                    src={user.profilePhotoUrl}
+                    alt={user.fullName || user.email || 'User'}
+                    className="user-avatar-img"
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: `2px solid ${modeTokens?.border?.default || '#e2e8f0'}`,
+                      boxShadow: 'var(--shadow-card, 0 1px 3px rgba(0, 0, 0, 0.1))'
+                    }}
+                    onError={(e) => {
+                      // Fallback to avatar initial if image fails to load
+                      e.target.style.display = 'none';
+                      const fallback = e.target.nextSibling;
+                      if (fallback) fallback.style.display = 'flex';
+                    }}
+                  />
+                ) : null}
                 <div 
                   className="user-avatar"
                   style={{
@@ -133,7 +154,7 @@ function Header() {
                     height: '32px',
                     borderRadius: '50%',
                     background: modeTokens?.gradient?.primary || 'linear-gradient(135deg, #065f46, #047857)',
-                    display: 'flex',
+                    display: user.profilePhotoUrl ? 'none' : 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#ffffff',

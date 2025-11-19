@@ -509,10 +509,18 @@ class EmployeeRepository {
    * @returns {Promise<Object>} Updated employee
    */
   async updateLinkedInData(employeeId, linkedinUrl, linkedinData, client = null) {
+    // Extract profile photo URL from LinkedIn data
+    // Priority: picture (OpenID Connect) > profilePicture.displayImage (legacy)
+    const profilePhotoUrl = linkedinData.picture 
+      || linkedinData.profilePicture?.displayImage 
+      || linkedinData.profilePicture 
+      || null;
+
     const query = `
       UPDATE employees
       SET linkedin_url = $1,
           linkedin_data = $2,
+          profile_photo_url = COALESCE($4, profile_photo_url),
           updated_at = CURRENT_TIMESTAMP
       WHERE id = $3
       RETURNING *
@@ -521,7 +529,8 @@ class EmployeeRepository {
     const result = await queryRunner.query(query, [
       linkedinUrl,
       JSON.stringify(linkedinData),
-      employeeId
+      employeeId,
+      profilePhotoUrl
     ]);
     return result.rows[0];
   }
@@ -535,10 +544,15 @@ class EmployeeRepository {
    * @returns {Promise<Object>} Updated employee
    */
   async updateGitHubData(employeeId, githubUrl, githubData, client = null) {
+    // Extract profile photo URL from GitHub data (avatar_url)
+    // Only update if LinkedIn photo doesn't exist (fallback)
+    const profilePhotoUrl = githubData.avatar_url || null;
+
     const query = `
       UPDATE employees
       SET github_url = $1,
           github_data = $2,
+          profile_photo_url = COALESCE(profile_photo_url, $4),
           updated_at = CURRENT_TIMESTAMP
       WHERE id = $3
       RETURNING *
@@ -547,7 +561,8 @@ class EmployeeRepository {
     const result = await queryRunner.query(query, [
       githubUrl,
       JSON.stringify(githubData),
-      employeeId
+      employeeId,
+      profilePhotoUrl
     ]);
     return result.rows[0];
   }

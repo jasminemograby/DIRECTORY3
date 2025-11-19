@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS employees (
     preferred_language VARCHAR(50),
     status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
     bio TEXT,
+    profile_photo_url VARCHAR(500),
     linkedin_url VARCHAR(500),
     github_url VARCHAR(500),
     linkedin_data JSONB,
