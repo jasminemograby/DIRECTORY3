@@ -3,6 +3,11 @@
 .App {
   min-height: 100vh;
   position: relative;
+  padding-top: var(--header-height, 80px);
+}
+
+.app-content {
+  min-height: calc(100vh - var(--header-height, 80px));
 }
 
 /* Ensure proper z-index layering */

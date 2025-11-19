@@ -1,7 +1,9 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const parseRequest = require('./shared/requestParser');
 const formatResponse = require('./shared/responseFormatter');
+const designTokens = require('../design-tokens.json');
 
 // Controllers
 const CompanyRegistrationController = require('./presentation/CompanyRegistrationController');
@@ -83,6 +85,30 @@ app.get('/debug/find-hr-email', async (req, res) => {
     console.error('Error in debug endpoint:', error);
     res.status(500).json({ error: error.message });
   }
+});
+
+// Design Tokens endpoint (raw JSON, not wrapped)
+app.get('/design-tokens', (req, res) => {
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.type('application/json').send(designTokens);
+});
+
+// Logo assets endpoint
+app.get('/assets/:logo', (req, res) => {
+  const { logo } = req.params;
+  const logoMap = {
+    logo1: 'logo1.jpg',
+    logo2: 'logo2.jpg'
+  };
+
+  const fileName = logoMap[logo?.toLowerCase()];
+
+  if (!fileName) {
+    return res.status(404).json({ error: 'Logo not found' });
+  }
+
+  const filePath = path.join(__dirname, '..', fileName);
+  res.sendFile(filePath);
 });
 
 // Initialize controllers
