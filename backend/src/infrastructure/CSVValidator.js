@@ -104,10 +104,11 @@ class CSVValidator {
       }
 
       // Mandatory employee fields
-      if (!row.manager_id) {
+      // manager_id is required but can be empty string (for employees with no manager)
+      if (row.manager_id === null || row.manager_id === undefined) {
         rowErrors.push({
           type: 'missing_field',
-          message: 'manager_id is required (use empty string if no manager)',
+          message: 'manager_id is required (use empty string "" if no manager)',
           row: rowNumber,
           column: 'manager_id'
         });

@@ -80,24 +80,7 @@ function CSVUploadProgress({ validation, created, isProcessing }) {
         </div>
       )}
 
-      {/* Errors */}
-      {hasErrors && (
-        <div className="p-6 rounded-lg bg-red-50 border border-red-200">
-          <h3 className="text-lg font-semibold mb-4 text-red-800">
-            Errors ({validation.errors.length})
-          </h3>
-          <div className="space-y-2 max-h-64 overflow-y-auto">
-            {validation.errors.map((error, index) => (
-              <div key={index} className="p-3 bg-white rounded border border-red-200">
-                <p className="text-sm font-medium text-red-800">
-                  Row {error.row}, Column: {error.column}
-                </p>
-                <p className="text-sm text-red-600">{error.message}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Errors - Removed duplicate display, CSVErrorDisplay component handles this */}
 
       {/* Warnings */}
       {hasWarnings && (

@@ -79,7 +79,7 @@ class CSVParser {
       role_type: this.normalizeRoleType(this.trimValue(row.role_type)),
       current_role_in_company: this.trimValue(row.current_role_in_company),
       target_role_in_company: this.trimValue(row.target_role_in_company),
-      manager_id: this.trimValue(row.manager_id),
+      manager_id: this.trimValuePreserveEmpty(row.manager_id), // Preserve empty strings for manager_id
       password: this.trimValue(row.password),
       preferred_language: this.trimValue(row.preferred_language),
       status: this.normalizeEmployeeStatus(this.trimValue(row.status)) || 'active',
@@ -101,6 +101,19 @@ class CSVParser {
     }
     const trimmed = String(value).trim();
     return trimmed === '' ? null : trimmed;
+  }
+
+  /**
+   * Trim and clean string value, preserving empty strings
+   * Used for fields like manager_id where empty string is a valid value
+   * @param {string} value - Value to trim
+   * @returns {string} Trimmed value (empty string if empty, not null)
+   */
+  trimValuePreserveEmpty(value) {
+    if (value === undefined || value === null) {
+      return '';
+    }
+    return String(value).trim();
   }
 
   /**
