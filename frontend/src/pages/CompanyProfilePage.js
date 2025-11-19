@@ -19,10 +19,20 @@ function CompanyProfilePage() {
         setLoading(true);
         const response = await getCompanyProfile(companyId);
         
-        if (response && response.response) {
-          setProfileData(response.response);
+        // Debug logging
+        console.log('[CompanyProfilePage] Full response:', response);
+        
+        // Handle response format (could be wrapped in response.response or direct)
+        const profileData = response?.response || response;
+        
+        console.log('[CompanyProfilePage] Profile data:', profileData);
+        console.log('[CompanyProfilePage] Company object:', profileData?.company);
+        console.log('[CompanyProfilePage] Company logo_url:', profileData?.company?.logo_url);
+        
+        if (profileData) {
+          setProfileData(profileData);
         } else {
-          setProfileData(response);
+          throw new Error('No profile data received');
         }
       } catch (err) {
         console.error('Error fetching company profile:', err);
@@ -88,6 +98,12 @@ function CompanyProfilePage() {
         {/* Header with Logo */}
         <div className="mb-6">
           <div className="flex items-center gap-6 mb-4">
+            {/* Debug info - remove after testing */}
+            {process.env.NODE_ENV === 'development' && (
+              <div style={{ fontSize: '10px', color: 'red', position: 'absolute', top: '100px' }}>
+                Logo URL: {profileData.company?.logo_url || 'NOT FOUND'}
+              </div>
+            )}
             {/* Company Logo */}
             {profileData.company?.logo_url ? (
               <img
