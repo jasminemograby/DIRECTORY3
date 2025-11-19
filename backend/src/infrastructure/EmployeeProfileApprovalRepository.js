@@ -67,8 +67,18 @@ class EmployeeProfileApprovalRepository {
   async findPendingByCompanyId(companyId) {
     const query = `
       SELECT 
-        apa.*,
-        e.id as employee_uuid,
+        apa.id,
+        apa.employee_id as employee_uuid,
+        apa.company_id,
+        apa.status,
+        apa.enriched_at,
+        apa.requested_at,
+        apa.reviewed_at,
+        apa.reviewed_by,
+        apa.rejection_reason,
+        apa.created_at,
+        apa.updated_at,
+        e.id,
         e.employee_id,
         e.full_name,
         e.email,
@@ -161,8 +171,18 @@ class EmployeeProfileApprovalRepository {
   async findById(approvalId) {
     const query = `
       SELECT 
-        apa.*,
-        e.id as employee_uuid,
+        apa.id,
+        apa.employee_id as employee_uuid,
+        apa.company_id,
+        apa.status,
+        apa.enriched_at,
+        apa.requested_at,
+        apa.reviewed_at,
+        apa.reviewed_by,
+        apa.rejection_reason,
+        apa.created_at,
+        apa.updated_at,
+        e.id,
         e.employee_id,
         e.full_name,
         e.email,

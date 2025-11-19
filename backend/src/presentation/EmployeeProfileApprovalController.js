@@ -83,9 +83,11 @@ class EmployeeProfileApprovalController {
       const updatedApproval = await this.approvalRepository.approveProfile(approvalId, hrEmployeeId);
 
       // Update employee profile status to 'approved'
-      await this.employeeRepository.updateProfileStatus(approval.employee_id, 'approved');
+      // Use employee_uuid (the UUID from apa.employee_id) not the string employee_id
+      const employeeUuid = approval.employee_uuid || approval.employee_id;
+      await this.employeeRepository.updateProfileStatus(employeeUuid, 'approved');
 
-      console.log(`[EmployeeProfileApprovalController] ✅ Profile approved for employee: ${approval.employee_id}`);
+      console.log(`[EmployeeProfileApprovalController] ✅ Profile approved for employee: ${employeeUuid}`);
 
       return res.status(200).json({
         success: true,
@@ -148,9 +150,11 @@ class EmployeeProfileApprovalController {
       );
 
       // Update employee profile status to 'rejected'
-      await this.employeeRepository.updateProfileStatus(approval.employee_id, 'rejected');
+      // Use employee_uuid (the UUID from apa.employee_id) not the string employee_id
+      const employeeUuid = approval.employee_uuid || approval.employee_id;
+      await this.employeeRepository.updateProfileStatus(employeeUuid, 'rejected');
 
-      console.log(`[EmployeeProfileApprovalController] ❌ Profile rejected for employee: ${approval.employee_id}`);
+      console.log(`[EmployeeProfileApprovalController] ❌ Profile rejected for employee: ${employeeUuid}`);
 
       return res.status(200).json({
         success: true,

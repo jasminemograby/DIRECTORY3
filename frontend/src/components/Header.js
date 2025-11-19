@@ -27,7 +27,12 @@ const resolveBackdropBlur = (value) => {
 function Header() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { tokens, mode, toggleMode, loading } = useDesignSystem();
+  const { tokens, mode, toggleMode, loading, error } = useDesignSystem();
+
+  // Show nothing only while actively loading (not if there's an error - use fallbacks)
+  if (loading) {
+    return null;
+  }
 
   const headerConfig = tokens?.components?.header;
   const modeHeader = tokens?.modes?.[mode]?.header;
