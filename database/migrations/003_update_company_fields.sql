@@ -55,15 +55,18 @@ UPDATE companies
 SET kpis = 'Not specified' 
 WHERE kpis IS NULL;
 
--- Then add NOT NULL constraint if column exists
+-- Then add NOT NULL constraint and DEFAULT if column exists
 DO $$
 BEGIN
   IF EXISTS (
     SELECT 1 FROM information_schema.columns 
     WHERE table_name = 'companies' AND column_name = 'kpis'
   ) THEN
+    -- Set default value first
+    ALTER TABLE companies ALTER COLUMN kpis SET DEFAULT 'Not specified';
+    -- Then make it NOT NULL
     ALTER TABLE companies ALTER COLUMN kpis SET NOT NULL;
-    RAISE NOTICE 'Set kpis to NOT NULL';
+    RAISE NOTICE 'Set kpis to NOT NULL with default value';
   END IF;
 END $$;
 

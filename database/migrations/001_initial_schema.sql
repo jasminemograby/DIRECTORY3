@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS companies (
     hr_contact_role VARCHAR(255),
     verification_status VARCHAR(50) DEFAULT 'pending' CHECK (verification_status IN ('pending', 'approved', 'rejected')),
     approval_policy VARCHAR(50) DEFAULT 'manual' CHECK (approval_policy IN ('manual', 'auto')),
-    kpis TEXT NOT NULL,
+    kpis TEXT NOT NULL DEFAULT 'Not specified',
     logo_url VARCHAR(500),
     -- Company settings for microservice integration
     passing_grade INTEGER,
