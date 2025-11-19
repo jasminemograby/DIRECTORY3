@@ -3,7 +3,15 @@ const cors = require('cors');
 const path = require('path');
 const parseRequest = require('./shared/requestParser');
 const formatResponse = require('./shared/responseFormatter');
-const designTokens = require('../design-tokens.json');
+
+// Load design tokens with error handling
+let designTokens;
+try {
+  designTokens = require('../design-tokens.json');
+} catch (error) {
+  console.warn('[index.js] Could not load design-tokens.json:', error.message);
+  designTokens = {}; // Fallback to empty object
+}
 
 // Controllers
 const CompanyRegistrationController = require('./presentation/CompanyRegistrationController');
@@ -35,8 +43,28 @@ app.use(express.urlencoded({ extended: true }));
 app.use(parseRequest);
 app.use(formatResponse);
 
-// Health check endpoint
+// Health check endpoint (must respond quickly for Railway)
 app.get('/health', (req, res) => {
+  // Check if critical controllers are initialized
+  const criticalControllers = {
+    authController,
+    oauthController
+  };
+  
+  const missingControllers = Object.entries(criticalControllers)
+    .filter(([name, controller]) => !controller)
+    .map(([name]) => name);
+  
+  if (missingControllers.length > 0) {
+    return res.status(503).json({
+      status: 'degraded',
+      message: 'Some controllers failed to initialize',
+      missingControllers,
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    });
+  }
+  
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -90,7 +118,7 @@ app.get('/debug/find-hr-email', async (req, res) => {
 // Design Tokens endpoint (raw JSON, not wrapped)
 app.get('/design-tokens', (req, res) => {
   res.setHeader('Cache-Control', 'public, max-age=3600');
-  res.type('application/json').send(designTokens);
+  res.type('application/json').send(designTokens || {});
 });
 
 // Logo assets endpoint
@@ -111,24 +139,57 @@ app.get('/assets/:logo', (req, res) => {
   res.sendFile(filePath);
 });
 
-// Initialize controllers
-const companyRegistrationController = new CompanyRegistrationController();
-const companyVerificationController = new CompanyVerificationController();
-const csvUploadController = new CSVUploadController();
-const companyProfileController = new CompanyProfileController();
-const employeeController = new EmployeeController();
-const authController = new AuthController();
-const oauthController = new OAuthController();
-const enrichmentController = new EnrichmentController();
-const approvalController = new EmployeeProfileApprovalController();
-const trainerController = new TrainerController();
+// Initialize controllers with error handling
+let companyRegistrationController, companyVerificationController, csvUploadController;
+let companyProfileController, employeeController, authController, oauthController;
+let enrichmentController, approvalController, trainerController;
+
+const initController = (name, initFn) => {
+  try {
+    console.log(`[Init] Initializing ${name}...`);
+    const controller = initFn();
+    console.log(`[Init] ✅ ${name} initialized successfully`);
+    return controller;
+  } catch (error) {
+    console.error(`[Init] ❌ Error initializing ${name}:`, error.message);
+    console.error(`[Init] Stack:`, error.stack);
+    return null; // Return null instead of crashing
+  }
+};
+
+console.log('[Init] Starting controller initialization...');
+companyRegistrationController = initController('CompanyRegistrationController', () => new CompanyRegistrationController());
+companyVerificationController = initController('CompanyVerificationController', () => new CompanyVerificationController());
+csvUploadController = initController('CSVUploadController', () => new CSVUploadController());
+companyProfileController = initController('CompanyProfileController', () => new CompanyProfileController());
+employeeController = initController('EmployeeController', () => new EmployeeController());
+authController = initController('AuthController', () => new AuthController());
+oauthController = initController('OAuthController', () => new OAuthController());
+enrichmentController = initController('EnrichmentController', () => new EnrichmentController());
+approvalController = initController('EmployeeProfileApprovalController', () => new EmployeeProfileApprovalController());
+trainerController = initController('TrainerController', () => new TrainerController());
+console.log('[Init] Controller initialization complete');
 
 // API Routes
 const apiRouter = express.Router();
 
+// Helper to check if controller is initialized
+const checkController = (controller, name) => {
+  if (!controller) {
+    const error = new Error(`Controller ${name} is not initialized. Check server logs for initialization errors.`);
+    error.statusCode = 503; // Service Unavailable
+    throw error;
+  }
+};
+
 // Authentication
 apiRouter.post('/auth/login', (req, res, next) => {
-  authController.login(req, res, next);
+  try {
+    checkController(authController, 'AuthController');
+    authController.login(req, res, next);
+  } catch (error) {
+    next(error);
+  }
 });
 
 apiRouter.post('/auth/logout', (req, res, next) => {
@@ -263,8 +324,53 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Error handlers for uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('[Process] Uncaught Exception:', error);
+  console.error('[Process] Stack:', error.stack);
+  // Log but don't exit - let Railway handle container restarts
 });
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[Process] Unhandled Rejection at:', promise);
+  console.error('[Process] Reason:', reason);
+  if (reason instanceof Error) {
+    console.error('[Process] Stack:', reason.stack);
+  }
+  // Log but don't exit - let Railway handle container restarts
+});
+
+// Graceful shutdown handler
+process.on('SIGTERM', () => {
+  console.log('[Process] SIGTERM received, shutting down gracefully...');
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('[Process] SIGINT received, shutting down gracefully...');
+  process.exit(0);
+});
+
+// Start server
+try {
+  const server = app.listen(PORT, () => {
+    console.log(`[Server] ✅ Server running on port ${PORT}`);
+    console.log(`[Server] Health check available at http://localhost:${PORT}/health`);
+  });
+
+  server.on('error', (error) => {
+    console.error('[Server] Error starting server:', error);
+    if (error.code === 'EADDRINUSE') {
+      console.error(`[Server] Port ${PORT} is already in use`);
+      process.exit(1);
+    } else {
+      console.error('[Server] Unknown server error, exiting...');
+      process.exit(1);
+    }
+  });
+} catch (error) {
+  console.error('[Server] Failed to start server:', error);
+  console.error('[Server] Stack:', error.stack);
+  process.exit(1);
+}
 
