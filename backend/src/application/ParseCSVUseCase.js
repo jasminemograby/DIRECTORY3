@@ -81,13 +81,19 @@ class ParseCSVUseCase {
    * @returns {Promise<Object>} Processing statistics
    */
   async processValidRows(validRows, companyId) {
+    // Verify company exists before processing
+    const company = await this.companyRepository.findById(companyId);
+    if (!company) {
+      throw new Error(`Company with ID ${companyId} does not exist. Please register the company first.`);
+    }
+
     // Start transaction
     const client = await this.companyRepository.beginTransaction();
 
     try {
       // Update company settings from first row (with validation)
       const firstRow = validRows[0];
-      if (firstRow.learning_path_approval || firstRow.primary_kpis) {
+      if (firstRow.learning_path_approval || firstRow.primary_kpis || firstRow.logo_url) {
         await this.updateCompanySettings(companyId, firstRow, client);
       }
 
@@ -299,6 +305,12 @@ class ParseCSVUseCase {
    * @param {Object} client - Database client
    */
   async updateCompanySettings(companyId, row, client) {
+    // Verify company exists before updating
+    const companyCheck = await client.query('SELECT id FROM companies WHERE id = $1', [companyId]);
+    if (companyCheck.rows.length === 0) {
+      throw new Error(`Company with ID ${companyId} does not exist. Cannot update company settings.`);
+    }
+
     // Validate company settings against database constraints
     const validatedSettings = this.dbConstraintValidator.validateCompanySettings(row);
 
@@ -329,7 +341,13 @@ class ParseCSVUseCase {
         SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP
         WHERE id = $${paramIndex}
       `;
-      await client.query(query, values);
+      const result = await client.query(query, values);
+      
+      // Verify update succeeded
+      if (result.rowCount === 0) {
+        throw new Error(`Failed to update company settings. Company ${companyId} may not exist.`);
+      }
+      
       if (row.logo_url) {
         console.log(`[ParseCSVUseCase] Updated company logo URL: ${row.logo_url.substring(0, 50)}...`);
       }

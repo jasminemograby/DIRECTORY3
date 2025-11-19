@@ -53,6 +53,13 @@ class CSVUploadController {
 
         console.log(`[CSVUploadController] Processing CSV upload for company ${companyId}, file size: ${fileBuffer.length} bytes`);
 
+        // Validate company ID format (should be UUID)
+        if (!companyId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(companyId)) {
+          return res.status(400).json({
+            error: 'Invalid company ID format. Please ensure you are uploading to a valid company.'
+          });
+        }
+
         // Parse and process CSV
         const result = await this.parseCSVUseCase.execute(fileBuffer, companyId);
 
