@@ -17,13 +17,23 @@ function EnrichProfilePage() {
   const [refreshing, setRefreshing] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
 
-  // Initialize connection status from user object
+  // Initialize connection status from user object (only on initial load, not after OAuth)
+  // This ensures we show the correct state when the page first loads
   useEffect(() => {
-    if (user) {
-      setLinkedinConnected(user.hasLinkedIn || false);
-      setGithubConnected(user.hasGitHub || false);
+    if (user && !refreshing) {
+      // Only update if we're not currently refreshing (to avoid overwriting OAuth callback updates)
+      const linkedinStatus = user.hasLinkedIn || false;
+      const githubStatus = user.hasGitHub || false;
+      
+      // Only update if status actually changed (to avoid unnecessary re-renders)
+      if (linkedinStatus !== linkedinConnected) {
+        setLinkedinConnected(linkedinStatus);
+      }
+      if (githubStatus !== githubConnected) {
+        setGithubConnected(githubStatus);
+      }
     }
-  }, [user]);
+  }, [user]); // Only depend on user, not on linkedinConnected/githubConnected to avoid loops
 
   // Check URL params for OAuth callback results and refresh user data
   useEffect(() => {
@@ -34,6 +44,7 @@ function EnrichProfilePage() {
     if (errorParam) {
       setError(decodeURIComponent(errorParam));
       setSuccessMessage(null);
+      return;
     }
 
     // If OAuth callback detected, refresh user data to get updated connection status
@@ -42,33 +53,40 @@ function EnrichProfilePage() {
       refreshUser()
         .then((refreshedUser) => {
           if (refreshedUser) {
-            // Update connection status from refreshed user
-            setLinkedinConnected(refreshedUser.hasLinkedIn || false);
-            setGithubConnected(refreshedUser.hasGitHub || false);
+            // Update connection status from refreshed user (from database, not URL params)
+            const newLinkedinStatus = refreshedUser.hasLinkedIn || false;
+            const newGithubStatus = refreshedUser.hasGitHub || false;
             
-            // Show success message
-            if (linkedinParam === 'connected') {
-              setSuccessMessage('LinkedIn connected successfully! Please connect GitHub to continue.');
-            } else if (githubParam === 'connected') {
-              setSuccessMessage('GitHub connected successfully! Please connect LinkedIn to continue.');
+            setLinkedinConnected(newLinkedinStatus);
+            setGithubConnected(newGithubStatus);
+            
+            // Show success message based on what was just connected
+            if (linkedinParam === 'connected' && !newGithubStatus) {
+              setSuccessMessage('✓ LinkedIn connected successfully! Please connect GitHub to continue.');
+            } else if (githubParam === 'connected' && !newLinkedinStatus) {
+              setSuccessMessage('✓ GitHub connected successfully! Please connect LinkedIn to continue.');
+            } else if (newLinkedinStatus && newGithubStatus) {
+              setSuccessMessage('✓ Both LinkedIn and GitHub connected! Redirecting to your profile...');
             }
             
-            // Clear success message after 5 seconds
-            setTimeout(() => {
-              setSuccessMessage(null);
-            }, 5000);
+            // Clear success message after 5 seconds (unless both are connected, then redirect will happen)
+            if (!(newLinkedinStatus && newGithubStatus)) {
+              setTimeout(() => {
+                setSuccessMessage(null);
+              }, 5000);
+            }
           }
         })
         .catch((err) => {
           console.error('Error refreshing user after OAuth:', err);
-          // Still set the connection status based on URL param as fallback
+          // Fallback: set connection status based on URL param
           if (linkedinParam === 'connected') {
             setLinkedinConnected(true);
-            setSuccessMessage('LinkedIn connected successfully! Please connect GitHub to continue.');
+            setSuccessMessage('✓ LinkedIn connected successfully! Please connect GitHub to continue.');
           }
           if (githubParam === 'connected') {
             setGithubConnected(true);
-            setSuccessMessage('GitHub connected successfully! Please connect LinkedIn to continue.');
+            setSuccessMessage('✓ GitHub connected successfully! Please connect LinkedIn to continue.');
           }
         })
         .finally(() => {
@@ -214,8 +232,8 @@ function EnrichProfilePage() {
           </div>
         )}
 
-        {/* Success Messages */}
-        {linkedinConnected && !githubConnected && (
+        {/* Success Messages - Show dynamic message from state */}
+        {successMessage && (
           <div 
             className="mb-6 p-4 rounded-lg"
             style={{
@@ -224,33 +242,7 @@ function EnrichProfilePage() {
               color: 'rgb(34, 197, 94)'
             }}
           >
-            <p className="text-sm">✓ LinkedIn connected successfully! Please connect GitHub to continue.</p>
-          </div>
-        )}
-
-        {githubConnected && !linkedinConnected && (
-          <div 
-            className="mb-6 p-4 rounded-lg"
-            style={{
-              background: 'rgba(34, 197, 94, 0.1)',
-              border: '1px solid rgb(34, 197, 94)',
-              color: 'rgb(34, 197, 94)'
-            }}
-          >
-            <p className="text-sm">✓ GitHub connected successfully! Please connect LinkedIn to continue.</p>
-          </div>
-        )}
-
-        {linkedinConnected && githubConnected && (
-          <div 
-            className="mb-6 p-4 rounded-lg"
-            style={{
-              background: 'rgba(34, 197, 94, 0.1)',
-              border: '1px solid rgb(34, 197, 94)',
-              color: 'rgb(34, 197, 94)'
-            }}
-          >
-            <p className="text-sm">✓ Both LinkedIn and GitHub connected! Redirecting to your profile...</p>
+            <p className="text-sm">{successMessage}</p>
           </div>
         )}
 

@@ -34,7 +34,7 @@ class GeminiAPIClient {
 
     try {
       const response = await axios.post(
-        `${this.baseUrl}/models/gemini-pro:generateContent?key=${this.apiKey}`,
+        `${this.baseUrl}/models/gemini-1.5-pro:generateContent?key=${this.apiKey}`,
         {
           contents: [{
             parts: [{
@@ -80,7 +80,7 @@ class GeminiAPIClient {
 
     try {
       const response = await axios.post(
-        `${this.baseUrl}/models/gemini-pro:generateContent?key=${this.apiKey}`,
+        `${this.baseUrl}/models/gemini-1.5-pro:generateContent?key=${this.apiKey}`,
         {
           contents: [{
             parts: [{

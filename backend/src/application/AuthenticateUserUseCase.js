@@ -100,8 +100,9 @@ class AuthenticateUserUseCase {
       const isProfileApproved = profileStatus === 'approved'; // Only approved profiles can use the system
 
       // Check if LinkedIn and GitHub are already connected
-      const hasLinkedIn = !!(employee.linkedin_data && employee.linkedin_url);
-      const hasGitHub = !!(employee.github_data && employee.github_url);
+      // Only check for data existence, not URL (URL might be null even if data exists)
+      const hasLinkedIn = !!employee.linkedin_data;
+      const hasGitHub = !!employee.github_data;
       const bothConnected = hasLinkedIn && hasGitHub;
 
       // Generate token using AuthProvider (in dummy mode, it will use DummyAuthProvider)
