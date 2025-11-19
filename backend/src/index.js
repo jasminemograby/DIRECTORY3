@@ -24,6 +24,8 @@ const OAuthController = require('./presentation/OAuthController');
 const EnrichmentController = require('./presentation/EnrichmentController');
 const TrainerController = require('./presentation/TrainerController');
 const EmployeeProfileApprovalController = require('./presentation/EmployeeProfileApprovalController');
+const RequestController = require('./presentation/RequestController');
+const UniversalEndpointController = require('./presentation/UniversalEndpointController');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -142,7 +144,8 @@ app.get('/assets/:logo', (req, res) => {
 // Initialize controllers with error handling
 let companyRegistrationController, companyVerificationController, csvUploadController;
 let companyProfileController, employeeController, authController, oauthController;
-let enrichmentController, approvalController, trainerController;
+let enrichmentController, approvalController, trainerController, requestController;
+let universalEndpointController;
 
 const initController = (name, initFn) => {
   try {
@@ -168,6 +171,8 @@ oauthController = initController('OAuthController', () => new OAuthController())
 enrichmentController = initController('EnrichmentController', () => new EnrichmentController());
 approvalController = initController('EmployeeProfileApprovalController', () => new EmployeeProfileApprovalController());
 trainerController = initController('TrainerController', () => new TrainerController());
+requestController = initController('RequestController', () => new RequestController());
+universalEndpointController = initController('UniversalEndpointController', () => new UniversalEndpointController());
 console.log('[Init] Controller initialization complete');
 
 // API Routes
@@ -262,6 +267,41 @@ apiRouter.get('/companies/:id/employees/:employeeId', (req, res, next) => {
   employeeController.getEmployee(req, res, next);
 });
 
+// Employee Profile Data (Skills, Courses, Dashboard, Learning Path)
+apiRouter.get('/companies/:id/employees/:employeeId/skills', authMiddleware, (req, res, next) => {
+  employeeController.getEmployeeSkills(req, res, next);
+});
+
+apiRouter.get('/companies/:id/employees/:employeeId/courses', authMiddleware, (req, res, next) => {
+  employeeController.getEmployeeCourses(req, res, next);
+});
+
+apiRouter.get('/companies/:id/employees/:employeeId/learning-path', authMiddleware, (req, res, next) => {
+  employeeController.getEmployeeLearningPath(req, res, next);
+});
+
+apiRouter.get('/companies/:id/employees/:employeeId/dashboard', authMiddleware, (req, res, next) => {
+  employeeController.getEmployeeDashboard(req, res, next);
+});
+
+// Employee Requests
+apiRouter.post('/companies/:id/employees/:employeeId/requests', authMiddleware, (req, res, next) => {
+  requestController.submitRequest(req, res, next);
+});
+
+apiRouter.get('/companies/:id/employees/:employeeId/requests', authMiddleware, (req, res, next) => {
+  requestController.getEmployeeRequests(req, res, next);
+});
+
+// Company Requests (HR/Manager view)
+apiRouter.get('/companies/:id/requests', authMiddleware, (req, res, next) => {
+  requestController.getCompanyRequests(req, res, next);
+});
+
+apiRouter.put('/companies/:id/requests/:requestId', authMiddleware, (req, res, next) => {
+  requestController.updateRequestStatus(req, res, next);
+});
+
 // Profile Enrichment
 apiRouter.post('/employees/:employeeId/enrich', authMiddleware, (req, res, next) => {
   enrichmentController.enrichProfile(req, res, next);
@@ -299,6 +339,24 @@ apiRouter.put('/employees/:employeeId/trainer-settings', authMiddleware, (req, r
 
 apiRouter.get('/employees/:employeeId/courses-taught', authMiddleware, (req, res, next) => {
   trainerController.getCoursesTaught(req, res, next);
+});
+
+// Universal Endpoint for other microservices (no auth required - internal service-to-service)
+// This must be BEFORE /api/v1 to avoid conflicts
+app.post('/api/fill-content-metrics', (req, res) => {
+  try {
+    checkController(universalEndpointController, 'UniversalEndpointController');
+    universalEndpointController.handleRequest(req, res);
+  } catch (error) {
+    console.error('[index.js] Universal endpoint error:', error);
+    res.status(503).send(JSON.stringify({
+      requester_service: req.body?.requester_service || 'unknown',
+      payload: req.body?.payload || {},
+      response: {
+        error: 'Universal endpoint is not available. Controller initialization failed.'
+      }
+    }));
+  }
 });
 
 app.use('/api/v1', apiRouter);

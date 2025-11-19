@@ -56,11 +56,11 @@ CREATE TABLE IF NOT EXISTS employees (
     employee_id VARCHAR(255) NOT NULL,
     full_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255),
-    current_role_in_company VARCHAR(255),
-    target_role_in_company VARCHAR(255),
-    preferred_language VARCHAR(50),
-    status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
+    password_hash VARCHAR(255) NOT NULL,
+    current_role_in_company VARCHAR(255) NOT NULL,
+    target_role_in_company VARCHAR(255) NOT NULL,
+    preferred_language VARCHAR(50) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
     bio TEXT,
     profile_photo_url VARCHAR(500),
     linkedin_url VARCHAR(500),
@@ -171,6 +171,24 @@ CREATE TABLE IF NOT EXISTS employee_profile_approvals (
     UNIQUE(employee_id)
 );
 
+-- Employee requests table (for learning opportunities, trainer applications, etc.)
+CREATE TABLE IF NOT EXISTS employee_requests (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    employee_id UUID NOT NULL REFERENCES employees(id) ON DELETE CASCADE,
+    company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+    request_type VARCHAR(50) NOT NULL CHECK (request_type IN ('learn-new-skills', 'apply-trainer', 'self-learning', 'other')),
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    status VARCHAR(50) DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'in_progress', 'completed')),
+    requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    reviewed_at TIMESTAMP,
+    reviewed_by UUID REFERENCES employees(id) ON DELETE SET NULL,
+    rejection_reason TEXT,
+    response_notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_companies_domain ON companies(domain);
 CREATE INDEX IF NOT EXISTS idx_employees_profile_status ON employees(profile_status);
@@ -183,4 +201,7 @@ CREATE INDEX IF NOT EXISTS idx_teams_company_team_id ON teams(company_id, team_i
 CREATE INDEX IF NOT EXISTS idx_audit_logs_company_created ON audit_logs(company_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_user_created ON audit_logs(user_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_employee_project_summaries_employee ON employee_project_summaries(employee_id);
+CREATE INDEX IF NOT EXISTS idx_employee_requests_employee ON employee_requests(employee_id);
+CREATE INDEX IF NOT EXISTS idx_employee_requests_company_status ON employee_requests(company_id, status);
+CREATE INDEX IF NOT EXISTS idx_employee_requests_type ON employee_requests(request_type);
 

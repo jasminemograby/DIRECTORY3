@@ -4,6 +4,10 @@
 const AddEmployeeUseCase = require('../application/AddEmployeeUseCase');
 const UpdateEmployeeUseCase = require('../application/UpdateEmployeeUseCase');
 const DeleteEmployeeUseCase = require('../application/DeleteEmployeeUseCase');
+const GetEmployeeSkillsUseCase = require('../application/GetEmployeeSkillsUseCase');
+const GetEmployeeCoursesUseCase = require('../application/GetEmployeeCoursesUseCase');
+const GetEmployeeLearningPathUseCase = require('../application/GetEmployeeLearningPathUseCase');
+const GetEmployeeDashboardUseCase = require('../application/GetEmployeeDashboardUseCase');
 const EmployeeRepository = require('../infrastructure/EmployeeRepository');
 const ErrorTranslator = require('../shared/ErrorTranslator');
 
@@ -12,6 +16,10 @@ class EmployeeController {
     this.addEmployeeUseCase = new AddEmployeeUseCase();
     this.updateEmployeeUseCase = new UpdateEmployeeUseCase();
     this.deleteEmployeeUseCase = new DeleteEmployeeUseCase();
+    this.getEmployeeSkillsUseCase = new GetEmployeeSkillsUseCase();
+    this.getEmployeeCoursesUseCase = new GetEmployeeCoursesUseCase();
+    this.getEmployeeLearningPathUseCase = new GetEmployeeLearningPathUseCase();
+    this.getEmployeeDashboardUseCase = new GetEmployeeDashboardUseCase();
     this.employeeRepository = new EmployeeRepository();
   }
 
@@ -171,6 +179,110 @@ class EmployeeController {
       console.error('[EmployeeController] Error fetching employee:', error);
       res.status(500).json({
         error: 'An error occurred while fetching employee'
+      });
+    }
+  }
+
+  /**
+   * Get employee skills from Skills Engine
+   * GET /api/v1/companies/:id/employees/:employeeId/skills
+   */
+  async getEmployeeSkills(req, res, next) {
+    try {
+      const { id: companyId, employeeId } = req.params;
+
+      const result = await this.getEmployeeSkillsUseCase.execute(employeeId, companyId);
+
+      res.status(200).json({
+        success: true,
+        skills: result.skills
+      });
+    } catch (error) {
+      console.error('[EmployeeController] Error fetching employee skills:', error);
+      const statusCode = error.message.includes('not found') ? 404 
+        : error.message.includes('approved') ? 403 
+        : 500;
+      
+      res.status(statusCode).json({
+        error: error.message || 'An error occurred while fetching employee skills'
+      });
+    }
+  }
+
+  /**
+   * Get employee courses from Course Builder
+   * GET /api/v1/companies/:id/employees/:employeeId/courses
+   */
+  async getEmployeeCourses(req, res, next) {
+    try {
+      const { id: companyId, employeeId } = req.params;
+
+      const result = await this.getEmployeeCoursesUseCase.execute(employeeId, companyId);
+
+      res.status(200).json({
+        success: true,
+        courses: result.courses
+      });
+    } catch (error) {
+      console.error('[EmployeeController] Error fetching employee courses:', error);
+      const statusCode = error.message.includes('not found') ? 404 
+        : error.message.includes('approved') ? 403 
+        : 500;
+      
+      res.status(statusCode).json({
+        error: error.message || 'An error occurred while fetching employee courses'
+      });
+    }
+  }
+
+  /**
+   * Get employee learning path from Learner AI
+   * GET /api/v1/companies/:id/employees/:employeeId/learning-path
+   */
+  async getEmployeeLearningPath(req, res, next) {
+    try {
+      const { id: companyId, employeeId } = req.params;
+
+      const result = await this.getEmployeeLearningPathUseCase.execute(employeeId, companyId);
+
+      res.status(200).json({
+        success: true,
+        learningPath: result.learningPath
+      });
+    } catch (error) {
+      console.error('[EmployeeController] Error fetching employee learning path:', error);
+      const statusCode = error.message.includes('not found') ? 404 
+        : error.message.includes('approved') ? 403 
+        : 500;
+      
+      res.status(statusCode).json({
+        error: error.message || 'An error occurred while fetching employee learning path'
+      });
+    }
+  }
+
+  /**
+   * Get employee dashboard from Learning Analytics
+   * GET /api/v1/companies/:id/employees/:employeeId/dashboard
+   */
+  async getEmployeeDashboard(req, res, next) {
+    try {
+      const { id: companyId, employeeId } = req.params;
+
+      const result = await this.getEmployeeDashboardUseCase.execute(employeeId, companyId);
+
+      res.status(200).json({
+        success: true,
+        dashboard: result.dashboard
+      });
+    } catch (error) {
+      console.error('[EmployeeController] Error fetching employee dashboard:', error);
+      const statusCode = error.message.includes('not found') ? 404 
+        : error.message.includes('approved') ? 403 
+        : 500;
+      
+      res.status(statusCode).json({
+        error: error.message || 'An error occurred while fetching employee dashboard'
       });
     }
   }

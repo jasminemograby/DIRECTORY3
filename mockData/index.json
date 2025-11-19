@@ -11,9 +11,43 @@
   },
   "skills-engine": {
     "normalize-skills": {
-      "normalized_skills": [],
-      "competencies": [],
-      "unverified_skills": []
+      "user_id": 1024,
+      "competencies": [
+        {
+          "name": "Software Development",
+          "nested_competencies": [
+            {
+              "name": "Frontend Development",
+              "nested_competencies": [
+                {
+                  "name": "JavaScript Frameworks",
+                  "skills": [
+                    { "name": "React", "verified": false },
+                    { "name": "JavaScript", "verified": false },
+                    { "name": "TypeScript", "verified": false }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Backend Development",
+              "nested_competencies": [
+                {
+                  "name": "Server Technologies",
+                  "skills": [
+                    { "name": "Node.js", "verified": false },
+                    { "name": "Python", "verified": false }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "relevance_score": 75.5,
+      "gap": {
+        "missing_skills": ["Docker", "Kubernetes", "AWS"]
+      }
     },
     "verify-skills": {
       "verified_skills": [],
@@ -21,6 +55,31 @@
     }
   },
   "course-builder": {
+    "get-courses": {
+      "assigned_courses": [
+        {
+          "course_id": "COURSE-001",
+          "course_name": "JavaScript Fundamentals",
+          "status": "assigned"
+        }
+      ],
+      "in_progress_courses": [
+        {
+          "course_id": "COURSE-002",
+          "course_name": "React Advanced Patterns",
+          "progress": 45,
+          "status": "in_progress"
+        }
+      ],
+      "completed_courses": [
+        {
+          "course_id": "COURSE-003",
+          "course_name": "Node.js Basics",
+          "completed_at": "2024-10-15T10:00:00Z",
+          "status": "completed"
+        }
+      ]
+    },
     "language-sync": {
       "status": "success"
     },
@@ -40,8 +99,31 @@
   },
   "learner-ai": {
     "learning-path": {
-      "path_id": "",
-      "courses": []
+      "path_id": "PATH-001",
+      "courses": [
+        {
+          "course_id": "COURSE-001",
+          "course_name": "JavaScript Fundamentals",
+          "order": 1
+        },
+        {
+          "course_id": "COURSE-002",
+          "course_name": "React Advanced Patterns",
+          "order": 2
+        },
+        {
+          "course_id": "COURSE-004",
+          "course_name": "Full-Stack Development",
+          "order": 3
+        }
+      ],
+      "progress": 33,
+      "recommendations": [
+        {
+          "course_name": "Advanced TypeScript",
+          "reason": "Based on your JavaScript skills"
+        }
+      ]
     }
   },
   "assessment": {
@@ -54,6 +136,38 @@
     "analytics": {
       "total_employees": 100,
       "active_courses": 50
+    }
+  },
+  "learning-analytics": {
+    "dashboard": {
+      "progress_summary": {
+        "total_courses": 5,
+        "completed_courses": 2,
+        "in_progress_courses": 1,
+        "average_score": 85
+      },
+      "recent_activity": [
+        {
+          "description": "Completed course: Node.js Basics",
+          "timestamp": "2024-10-15T10:00:00Z"
+        },
+        {
+          "description": "Started course: React Advanced Patterns",
+          "timestamp": "2024-11-01T09:00:00Z"
+        }
+      ],
+      "upcoming_deadlines": [
+        {
+          "title": "React Advanced Patterns - Final Exam",
+          "due_date": "2024-12-01T23:59:59Z"
+        }
+      ],
+      "achievements": [
+        {
+          "name": "First Course Completed",
+          "earned_at": "2024-10-15T10:00:00Z"
+        }
+      ]
     }
   }
 }

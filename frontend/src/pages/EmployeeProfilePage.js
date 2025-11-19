@@ -13,6 +13,7 @@ import ProfileDashboard from '../components/ProfileDashboard';
 import ProfileRequests from '../components/ProfileRequests';
 import LearningPath from '../components/LearningPath';
 import LearningPathApprovals from '../components/LearningPathApprovals';
+import ProfileEditForm from '../components/ProfileEditForm';
 
 function EmployeeProfilePage() {
   const { employeeId } = useParams();
@@ -233,15 +234,55 @@ function EmployeeProfilePage() {
               )}
             </div>
           </div>
-          <button
-            onClick={() => navigate(-1)}
-            className="mb-4 text-sm text-teal-600 hover:text-teal-700"
-          >
-            ← Back
-          </button>
+          <div className="flex gap-3 mb-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="text-sm text-teal-600 hover:text-teal-700"
+            >
+              ← Back
+            </button>
+            {/* Only show Edit button if viewing own profile */}
+            {user?.id === employeeId && (
+              <button
+                onClick={() => setIsEditing(!isEditing)}
+                className="px-4 py-2 rounded-md text-sm font-medium"
+                style={{
+                  background: isEditing ? 'var(--bg-button-secondary)' : 'var(--bg-button-primary)',
+                  color: isEditing ? 'var(--text-button-secondary)' : 'var(--text-button-primary)'
+                }}
+              >
+                {isEditing ? 'Cancel Edit' : 'Edit Profile'}
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Profile Card */}
+        {/* Edit Profile Form */}
+        {isEditing && user?.id === employeeId && (
+          <ProfileEditForm
+            employee={employee}
+            onSave={() => {
+              setIsEditing(false);
+              // Refresh employee data
+              const fetchEmployee = async () => {
+                try {
+                  const response = await getEmployee(user?.companyId, employeeId);
+                  const employeeData = response?.response?.employee || response?.employee || response;
+                  if (employeeData) {
+                    setEmployee(employeeData);
+                  }
+                } catch (err) {
+                  console.error('Error refreshing employee:', err);
+                }
+              };
+              fetchEmployee();
+            }}
+            onCancel={() => setIsEditing(false)}
+          />
+        )}
+
+        {/* Profile Card - Only show when not editing */}
+        {!isEditing && (
         <div 
           className="rounded-lg shadow-lg border p-8 mb-6"
           style={{
@@ -418,6 +459,7 @@ function EmployeeProfilePage() {
             </div>
           )}
         </div>
+        )}
 
         {/* Approved Employee Features - Only visible when profile is approved */}
         {profileStatus === 'approved' && (

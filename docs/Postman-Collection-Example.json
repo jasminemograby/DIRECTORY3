@@ -1,0 +1,180 @@
+{
+  "info": {
+    "name": "EduCore Microservices - Generic Endpoints",
+    "description": "Collection for testing generic endpoints (/api/fill-content-metrics) for all EduCore microservices",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "SKILLS_ENGINE_URL",
+      "value": "https://skillsengine-production.up.railway.app",
+      "type": "string"
+    },
+    {
+      "key": "COURSE_BUILDER_URL",
+      "value": "https://coursebuilderfs-production.up.railway.app",
+      "type": "string"
+    },
+    {
+      "key": "LEARNER_AI_URL",
+      "value": "https://learner-ai-backend-production.up.railway.app",
+      "type": "string"
+    },
+    {
+      "key": "MANAGEMENT_REPORTING_URL",
+      "value": "https://lotusproject-production.up.railway.app",
+      "type": "string"
+    },
+    {
+      "key": "LEARNING_ANALYTICS_URL",
+      "value": "https://learning-analytics-production.up.railway.app",
+      "type": "string"
+    },
+    {
+      "key": "CONTENT_STUDIO_URL",
+      "value": "https://content-studio-production-76b6.up.railway.app",
+      "type": "string"
+    },
+    {
+      "key": "ASSESSMENT_URL",
+      "value": "https://assessment-tests-production.up.railway.app",
+      "type": "string"
+    },
+    {
+      "key": "DIRECTORY_URL",
+      "value": "https://directory3-production.up.railway.app",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Skills Engine - Get Employee Skills",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"requester_service\": \"directory\",\n  \"payload\": {\n    \"employee_id\": \"EMP001\",\n    \"company_id\": \"COMP001\",\n    \"employee_type\": \"regular_employee\",\n    \"raw_data\": {\n      \"github\": {\n        \"login\": \"testuser\",\n        \"bio\": \"Software Developer\",\n        \"repos\": []\n      },\n      \"linkedin\": {\n        \"firstName\": \"John\",\n        \"lastName\": \"Doe\",\n        \"headline\": \"Software Engineer\"\n      }\n    }\n  },\n  \"response\": {\n    \"user_id\": 0,\n    \"competencies\": [],\n    \"relevance_score\": 0\n  }\n}"
+        },
+        "url": {
+          "raw": "{{SKILLS_ENGINE_URL}}/api/fill-content-metrics",
+          "host": ["{{SKILLS_ENGINE_URL}}"],
+          "path": ["api", "fill-content-metrics"]
+        }
+      }
+    },
+    {
+      "name": "Course Builder - Get Employee Courses",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"requester_service\": \"directory\",\n  \"payload\": {\n    \"employee_id\": \"EMP001\",\n    \"company_id\": \"COMP001\"\n  },\n  \"response\": {\n    \"assigned_courses\": [],\n    \"in_progress_courses\": [],\n    \"completed_courses\": []\n  }\n}"
+        },
+        "url": {
+          "raw": "{{COURSE_BUILDER_URL}}/api/fill-content-metrics",
+          "host": ["{{COURSE_BUILDER_URL}}"],
+          "path": ["api", "fill-content-metrics"]
+        }
+      }
+    },
+    {
+      "name": "Learner AI - Get Learning Path",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"requester_service\": \"directory\",\n  \"payload\": {\n    \"employee_id\": \"EMP001\",\n    \"company_id\": \"COMP001\"\n  },\n  \"response\": {\n    \"path_id\": \"\",\n    \"courses\": [],\n    \"progress\": 0,\n    \"recommendations\": []\n  }\n}"
+        },
+        "url": {
+          "raw": "{{LEARNER_AI_URL}}/api/fill-learner-ai-fields",
+          "host": ["{{LEARNER_AI_URL}}"],
+          "path": ["api", "fill-learner-ai-fields"]
+        },
+        "description": "⚠️ Note: Learner AI uses a different endpoint (/api/fill-learner-ai-fields)"
+      }
+    },
+    {
+      "name": "Management Reporting - Get Analytics",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"requester_service\": \"directory\",\n  \"payload\": {\n    \"company_id\": \"COMP001\",\n    \"company_name\": \"Test Company\"\n  },\n  \"response\": {\n    \"status\": \"\",\n    \"analytics\": {}\n  }\n}"
+        },
+        "url": {
+          "raw": "{{MANAGEMENT_REPORTING_URL}}/api/fill-content-metrics",
+          "host": ["{{MANAGEMENT_REPORTING_URL}}"],
+          "path": ["api", "fill-content-metrics"]
+        }
+      }
+    },
+    {
+      "name": "Learning Analytics - Get Dashboard",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"requester_service\": \"directory\",\n  \"payload\": {\n    \"employee_id\": \"EMP001\",\n    \"company_id\": \"COMP001\"\n  },\n  \"response\": {\n    \"progress_summary\": {},\n    \"recent_activity\": [],\n    \"upcoming_deadlines\": [],\n    \"achievements\": []\n  }\n}"
+        },
+        "url": {
+          "raw": "{{LEARNING_ANALYTICS_URL}}/api/fill-content-metrics",
+          "host": ["{{LEARNING_ANALYTICS_URL}}"],
+          "path": ["api", "fill-content-metrics"]
+        }
+      }
+    },
+    {
+      "name": "Directory - Test Universal Endpoint",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"requester_service\": \"skills-engine\",\n  \"payload\": {\n    \"employee_id\": \"EMP001\"\n  },\n  \"response\": {\n    \"employee_name\": \"\",\n    \"employee_email\": \"\",\n    \"current_role\": \"\",\n    \"target_role\": \"\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{DIRECTORY_URL}}/api/fill-content-metrics",
+          "host": ["{{DIRECTORY_URL}}"],
+          "path": ["api", "fill-content-metrics"]
+        },
+        "description": "Test Directory's universal endpoint (when other microservices call Directory)"
+      }
+    }
+  ]
+}
+
