@@ -316,6 +316,12 @@ class ParseCSVUseCase {
       values.push(validatedSettings.primary_kpis);
     }
 
+    // Add logo_url if provided in CSV
+    if (row.logo_url) {
+      updates.push(`logo_url = $${paramIndex++}`);
+      values.push(row.logo_url);
+    }
+
     if (updates.length > 0) {
       values.push(companyId);
       const query = `
@@ -324,6 +330,9 @@ class ParseCSVUseCase {
         WHERE id = $${paramIndex}
       `;
       await client.query(query, values);
+      if (row.logo_url) {
+        console.log(`[ParseCSVUseCase] Updated company logo URL: ${row.logo_url.substring(0, 50)}...`);
+      }
     }
   }
 

@@ -57,6 +57,7 @@ class CSVParser {
       industry: this.trimValue(row.industry),
       learning_path_approval: this.normalizeLearningPathApproval(this.trimValue(row.learning_path_approval)) || 'manual',
       primary_kpis: this.trimValue(row.primary_KPIs) || this.trimValue(row.primary_kpis),
+      logo_url: this.trimValue(row.logo_url) || this.trimValue(row.company_logo) || this.trimValue(row.logo),
       
       // Department data
       department_id: this.trimValue(row.department_id),

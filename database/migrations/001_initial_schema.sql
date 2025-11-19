@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS companies (
     verification_status VARCHAR(50) DEFAULT 'pending' CHECK (verification_status IN ('pending', 'approved', 'rejected')),
     learning_path_approval VARCHAR(50) DEFAULT 'manual' CHECK (learning_path_approval IN ('manual', 'automatic')),
     primary_kpis TEXT,
+    logo_url VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

@@ -85,14 +85,85 @@ function CompanyProfilePage() {
   return (
     <div className="min-h-screen p-6" style={{ background: 'var(--bg-primary)' }}>
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+        {/* Header with Logo */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-            {profileData.company?.company_name || 'Company Profile'}
-          </h1>
-          <p className="text-lg" style={{ color: 'var(--text-secondary)' }}>
-            Company Overview & Management Dashboard
-          </p>
+          <div className="flex items-center gap-6 mb-4">
+            {/* Company Logo */}
+            {profileData.company?.logo_url ? (
+              <img
+                src={profileData.company.logo_url}
+                alt={profileData.company.company_name || 'Company Logo'}
+                className="company-logo"
+                style={{
+                  width: 'var(--logo-size, 80px)',
+                  height: 'var(--logo-size, 80px)',
+                  borderRadius: 'var(--radius-card, 8px)',
+                  objectFit: 'contain',
+                  border: '2px solid var(--border-default, #e2e8f0)',
+                  boxShadow: 'var(--shadow-card, 0 1px 3px rgba(0, 0, 0, 0.1))',
+                  background: 'var(--bg-card, #ffffff)',
+                  padding: 'var(--spacing-sm, 8px)'
+                }}
+                onError={(e) => {
+                  // Fallback to initial letter if image fails to load
+                  e.target.style.display = 'none';
+                  const fallback = e.target.nextSibling;
+                  if (fallback) fallback.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <div
+              className="company-logo-placeholder"
+              style={{
+                width: 'var(--logo-size, 80px)',
+                height: 'var(--logo-size, 80px)',
+                borderRadius: 'var(--radius-card, 8px)',
+                display: profileData.company?.logo_url ? 'none' : 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'var(--gradient-primary, linear-gradient(135deg, #065f46, #047857))',
+                color: 'var(--text-inverse, #ffffff)',
+                fontSize: 'var(--logo-font-size, 32px)',
+                fontWeight: 'var(--font-weight-semibold, 600)',
+                boxShadow: 'var(--shadow-card, 0 1px 3px rgba(0, 0, 0, 0.1))',
+                border: '2px solid var(--border-default, #e2e8f0)'
+              }}
+            >
+              {(profileData.company?.company_name || 'C').charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h1 
+                className="text-3xl font-bold mb-2" 
+                style={{ 
+                  color: 'var(--text-primary, #1e293b)',
+                  fontSize: 'var(--font-size-3xl, 30px)',
+                  fontWeight: 'var(--font-weight-bold, 700)'
+                }}
+              >
+                {profileData.company?.company_name || 'Company Profile'}
+              </h1>
+              <p 
+                className="text-lg" 
+                style={{ 
+                  color: 'var(--text-secondary, #64748b)',
+                  fontSize: 'var(--font-size-lg, 18px)'
+                }}
+              >
+                Company Overview & Management Dashboard
+              </p>
+              {profileData.company?.industry && (
+                <p 
+                  className="text-sm mt-1" 
+                  style={{ 
+                    color: 'var(--text-muted, #94a3b8)',
+                    fontSize: 'var(--font-size-sm, 14px)'
+                  }}
+                >
+                  {profileData.company.industry}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Dashboard */}
