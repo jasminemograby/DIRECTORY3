@@ -60,13 +60,36 @@ class EmployeeProfileApprovalController {
       // Get approval request
       const approval = await this.approvalRepository.findById(approvalId);
       if (!approval) {
+        console.error('[EmployeeProfileApprovalController] Approval not found:', {
+          approvalId,
+          companyId,
+          hrEmployeeId
+        });
         return res.status(404).json({
           error: 'Approval request not found'
         });
       }
 
+      console.log('[EmployeeProfileApprovalController] Found approval:', {
+        id: approval.id,
+        employee_uuid: approval.employee_uuid,
+        employee_id: approval.employee_id,
+        company_id: approval.company_id,
+        status: approval.status
+      });
+
       // Verify approval belongs to this company
-      if (approval.company_id !== companyId) {
+      // Compare as strings to handle UUID comparison (UUIDs can be objects or strings)
+      const approvalCompanyId = approval.company_id?.toString() || approval.company_id;
+      const requestCompanyId = companyId?.toString() || companyId;
+      
+      if (approvalCompanyId !== requestCompanyId) {
+        console.error('[EmployeeProfileApprovalController] Company ID mismatch:', {
+          approvalCompanyId: approvalCompanyId,
+          requestedCompanyId: requestCompanyId,
+          approvalCompanyIdType: typeof approvalCompanyId,
+          requestCompanyIdType: typeof requestCompanyId
+        });
         return res.status(403).json({
           error: 'Approval request does not belong to this company'
         });
@@ -83,8 +106,21 @@ class EmployeeProfileApprovalController {
       const updatedApproval = await this.approvalRepository.approveProfile(approvalId, hrEmployeeId);
 
       // Update employee profile status to 'approved'
-      // Use employee_uuid (the UUID from apa.employee_id) not the string employee_id
+      // Use employee_uuid (the UUID from apa.employee_id) - this is the correct UUID field
       const employeeUuid = approval.employee_uuid || approval.employee_id;
+      
+      if (!employeeUuid) {
+        console.error('[EmployeeProfileApprovalController] No employee UUID found in approval:', approval);
+        return res.status(500).json({
+          error: 'Unable to identify employee from approval request'
+        });
+      }
+
+      console.log('[EmployeeProfileApprovalController] Updating employee profile status:', {
+        employeeUuid,
+        newStatus: 'approved'
+      });
+
       await this.employeeRepository.updateProfileStatus(employeeUuid, 'approved');
 
       console.log(`[EmployeeProfileApprovalController] ✅ Profile approved for employee: ${employeeUuid}`);
@@ -129,7 +165,15 @@ class EmployeeProfileApprovalController {
       }
 
       // Verify approval belongs to this company
-      if (approval.company_id !== companyId) {
+      // Compare as strings to handle UUID comparison
+      const approvalCompanyId = approval.company_id?.toString() || approval.company_id;
+      const requestCompanyId = companyId?.toString() || companyId;
+      
+      if (approvalCompanyId !== requestCompanyId) {
+        console.error('[EmployeeProfileApprovalController] Company ID mismatch (reject):', {
+          approvalCompanyId: approvalCompanyId,
+          requestedCompanyId: requestCompanyId
+        });
         return res.status(403).json({
           error: 'Approval request does not belong to this company'
         });
@@ -150,8 +194,21 @@ class EmployeeProfileApprovalController {
       );
 
       // Update employee profile status to 'rejected'
-      // Use employee_uuid (the UUID from apa.employee_id) not the string employee_id
+      // Use employee_uuid (the UUID from apa.employee_id) - this is the correct UUID field
       const employeeUuid = approval.employee_uuid || approval.employee_id;
+      
+      if (!employeeUuid) {
+        console.error('[EmployeeProfileApprovalController] No employee UUID found in approval:', approval);
+        return res.status(500).json({
+          error: 'Unable to identify employee from approval request'
+        });
+      }
+
+      console.log('[EmployeeProfileApprovalController] Updating employee profile status:', {
+        employeeUuid,
+        newStatus: 'rejected'
+      });
+
       await this.employeeRepository.updateProfileStatus(employeeUuid, 'rejected');
 
       console.log(`[EmployeeProfileApprovalController] ❌ Profile rejected for employee: ${employeeUuid}`);

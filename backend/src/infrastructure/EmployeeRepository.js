@@ -434,6 +434,12 @@ class EmployeeRepository {
   async updateProfileStatus(employeeId, status, client = null) {
     const queryRunner = client || this.pool;
     
+    // Validate status
+    const validStatuses = ['basic', 'enrichment_pending', 'enriched', 'approved', 'rejected'];
+    if (!validStatuses.includes(status)) {
+      throw new Error(`Invalid profile status: ${status}. Must be one of: ${validStatuses.join(', ')}`);
+    }
+    
     const query = `
       UPDATE employees
       SET profile_status = $1,
@@ -443,6 +449,12 @@ class EmployeeRepository {
     `;
 
     const result = await queryRunner.query(query, [status, employeeId]);
+    
+    if (result.rows.length === 0) {
+      throw new Error(`Employee with ID ${employeeId} not found`);
+    }
+    
+    console.log(`[EmployeeRepository] ✅ Updated profile status for employee ${employeeId} to: ${status}`);
     return result.rows[0];
   }
 
@@ -614,6 +626,7 @@ class EmployeeRepository {
 
     try {
       // Update employee bio, enrichment flags, and profile status
+      // State transition: basic/enrichment_pending -> enriched
       const updateQuery = `
         UPDATE employees
         SET bio = $1,

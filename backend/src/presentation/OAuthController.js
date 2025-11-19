@@ -75,36 +75,30 @@ class OAuthController {
       const result = await this.connectLinkedInUseCase.handleCallback(code, state);
       console.log('[OAuthController] LinkedIn connected successfully for employee:', result.employee.id);
 
-      // Check if both OAuth connections are complete and trigger enrichment
+      // Check if both OAuth connections are complete
       const employeeId = result.employee.id;
       const isReady = await this.enrichProfileUseCase.isReadyForEnrichment(employeeId);
       
-      if (isReady) {
-        console.log('[OAuthController] Both OAuth connections complete, triggering enrichment...');
-        // Trigger enrichment in background (don't wait for it)
-        this.enrichProfileUseCase.enrichProfile(employeeId)
-          .then(enrichmentResult => {
-            console.log('[OAuthController] ✅ Profile enrichment completed:', enrichmentResult);
-          })
-          .catch(error => {
-            console.error('[OAuthController] ❌ Background enrichment failed:', error);
-          });
-      } else {
-        console.log('[OAuthController] Waiting for GitHub connection before enrichment');
-      }
-      
-      // ALWAYS redirect back to enrich page first
-      // The frontend will show the checkmark and handle the redirect to profile when both are connected
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
       
       if (isReady) {
-        // Both connected - trigger enrichment in background, but still redirect to enrich page
-        // Frontend will show both checkmarks and then auto-redirect to profile
-        console.log('[OAuthController] Both OAuth connections complete, triggering enrichment and redirecting to enrich page');
-        return res.redirect(`${frontendUrl}/enrich?linkedin=connected&github=connected`);
+        // Both connected - trigger enrichment synchronously (wait for it to complete)
+        console.log('[OAuthController] Both OAuth connections complete, triggering enrichment...');
+        try {
+          const enrichmentResult = await this.enrichProfileUseCase.enrichProfile(employeeId);
+          console.log('[OAuthController] ✅ Profile enrichment completed:', enrichmentResult);
+          
+          // After enrichment completes, redirect to enrich page with both connected status
+          // Frontend will show both checkmarks and then auto-redirect to profile
+          return res.redirect(`${frontendUrl}/enrich?linkedin=connected&github=connected&enriched=true`);
+        } catch (error) {
+          console.error('[OAuthController] ❌ Enrichment failed:', error);
+          // Still redirect to enrich page, but with error
+          return res.redirect(`${frontendUrl}/enrich?linkedin=connected&github=connected&error=${encodeURIComponent(error.message)}`);
+        }
       } else {
         // Only LinkedIn connected - go back to enrich page to connect GitHub
-        console.log('[OAuthController] LinkedIn connected, redirecting back to enrich page');
+        console.log('[OAuthController] LinkedIn connected, waiting for GitHub. Redirecting back to enrich page');
         return res.redirect(`${frontendUrl}/enrich?linkedin=connected`);
       }
     } catch (error) {
@@ -167,36 +161,30 @@ class OAuthController {
       const result = await this.connectGitHubUseCase.handleCallback(code, state);
       console.log('[OAuthController] GitHub connected successfully for employee:', result.employee.id);
 
-      // Check if both OAuth connections are complete and trigger enrichment
+      // Check if both OAuth connections are complete
       const employeeId = result.employee.id;
       const isReady = await this.enrichProfileUseCase.isReadyForEnrichment(employeeId);
       
-      if (isReady) {
-        console.log('[OAuthController] Both OAuth connections complete, triggering enrichment...');
-        // Trigger enrichment in background (don't wait for it)
-        this.enrichProfileUseCase.enrichProfile(employeeId)
-          .then(enrichmentResult => {
-            console.log('[OAuthController] ✅ Profile enrichment completed:', enrichmentResult);
-          })
-          .catch(error => {
-            console.error('[OAuthController] ❌ Background enrichment failed:', error);
-          });
-      } else {
-        console.log('[OAuthController] Waiting for LinkedIn connection before enrichment');
-      }
-
-      // ALWAYS redirect back to enrich page first
-      // The frontend will show the checkmark and handle the redirect to profile when both are connected
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
       
       if (isReady) {
-        // Both connected - trigger enrichment in background, but still redirect to enrich page
-        // Frontend will show both checkmarks and then auto-redirect to profile
-        console.log('[OAuthController] Both OAuth connections complete, triggering enrichment and redirecting to enrich page');
-        return res.redirect(`${frontendUrl}/enrich?linkedin=connected&github=connected`);
+        // Both connected - trigger enrichment synchronously (wait for it to complete)
+        console.log('[OAuthController] Both OAuth connections complete, triggering enrichment...');
+        try {
+          const enrichmentResult = await this.enrichProfileUseCase.enrichProfile(employeeId);
+          console.log('[OAuthController] ✅ Profile enrichment completed:', enrichmentResult);
+          
+          // After enrichment completes, redirect to enrich page with both connected status
+          // Frontend will show both checkmarks and then auto-redirect to profile
+          return res.redirect(`${frontendUrl}/enrich?linkedin=connected&github=connected&enriched=true`);
+        } catch (error) {
+          console.error('[OAuthController] ❌ Enrichment failed:', error);
+          // Still redirect to enrich page, but with error
+          return res.redirect(`${frontendUrl}/enrich?linkedin=connected&github=connected&error=${encodeURIComponent(error.message)}`);
+        }
       } else {
         // Only GitHub connected - go back to enrich page to connect LinkedIn
-        console.log('[OAuthController] GitHub connected, redirecting back to enrich page');
+        console.log('[OAuthController] GitHub connected, waiting for LinkedIn. Redirecting back to enrich page');
         return res.redirect(`${frontendUrl}/enrich?github=connected`);
       }
     } catch (error) {

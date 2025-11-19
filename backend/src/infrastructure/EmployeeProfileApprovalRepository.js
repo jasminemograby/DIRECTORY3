@@ -78,14 +78,15 @@ class EmployeeProfileApprovalRepository {
         apa.rejection_reason,
         apa.created_at,
         apa.updated_at,
-        e.id,
+        e.id as employee_db_id,
         e.employee_id,
         e.full_name,
         e.email,
         d.department_name as department,
         t.team_name as team,
         e.current_role_in_company,
-        e.enrichment_completed_at
+        e.enrichment_completed_at,
+        e.profile_status
       FROM employee_profile_approvals apa
       INNER JOIN employees e ON apa.employee_id = e.id
       LEFT JOIN employee_teams et ON e.id = et.employee_id
@@ -93,10 +94,12 @@ class EmployeeProfileApprovalRepository {
       LEFT JOIN departments d ON t.department_id = d.id
       WHERE apa.company_id = $1 
         AND apa.status = 'pending'
+        AND e.profile_status = 'enriched'
       ORDER BY apa.requested_at DESC
     `;
 
     const result = await this.pool.query(query, [companyId]);
+    console.log(`[EmployeeProfileApprovalRepository] Found ${result.rows.length} pending approvals for company ${companyId}`);
     return result.rows;
   }
 
@@ -182,13 +185,14 @@ class EmployeeProfileApprovalRepository {
         apa.rejection_reason,
         apa.created_at,
         apa.updated_at,
-        e.id,
+        e.id as employee_db_id,
         e.employee_id,
         e.full_name,
         e.email,
         d.department_name as department,
         t.team_name as team,
-        e.current_role_in_company
+        e.current_role_in_company,
+        e.profile_status
       FROM employee_profile_approvals apa
       INNER JOIN employees e ON apa.employee_id = e.id
       LEFT JOIN employee_teams et ON e.id = et.employee_id
@@ -198,7 +202,21 @@ class EmployeeProfileApprovalRepository {
     `;
 
     const result = await this.pool.query(query, [approvalId]);
-    return result.rows[0] || null;
+    const approval = result.rows[0] || null;
+    
+    if (approval) {
+      console.log('[EmployeeProfileApprovalRepository] Found approval:', {
+        id: approval.id,
+        employee_uuid: approval.employee_uuid,
+        employee_id: approval.employee_id,
+        company_id: approval.company_id,
+        status: approval.status
+      });
+    } else {
+      console.warn('[EmployeeProfileApprovalRepository] Approval not found:', approvalId);
+    }
+    
+    return approval;
   }
 }
 

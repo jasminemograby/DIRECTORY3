@@ -33,8 +33,10 @@ class GeminiAPIClient {
     const prompt = this.buildBioPrompt(linkedinData, githubData, employeeBasicInfo);
 
     try {
+      // Use gemini-1.5-flash for faster responses (free tier compatible)
+      const model = 'gemini-1.5-flash';
       const response = await axios.post(
-        `${this.baseUrl}/models/gemini-1.5-pro:generateContent?key=${this.apiKey}`,
+        `${this.baseUrl}/models/${model}:generateContent?key=${this.apiKey}`,
         {
           contents: [{
             parts: [{
@@ -79,8 +81,10 @@ class GeminiAPIClient {
     const prompt = this.buildProjectSummariesPrompt(repositories);
 
     try {
+      // Use gemini-1.5-flash for faster responses (free tier compatible)
+      const model = 'gemini-1.5-flash';
       const response = await axios.post(
-        `${this.baseUrl}/models/gemini-1.5-pro:generateContent?key=${this.apiKey}`,
+        `${this.baseUrl}/models/${model}:generateContent?key=${this.apiKey}`,
         {
           contents: [{
             parts: [{

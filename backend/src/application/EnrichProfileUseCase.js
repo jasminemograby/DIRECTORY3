@@ -5,6 +5,7 @@ const EmployeeRepository = require('../infrastructure/EmployeeRepository');
 const GeminiAPIClient = require('../infrastructure/GeminiAPIClient');
 const MockDataService = require('../infrastructure/MockDataService');
 const EmployeeProfileApprovalRepository = require('../infrastructure/EmployeeProfileApprovalRepository');
+const MicroserviceClient = require('../infrastructure/MicroserviceClient');
 
 class EnrichProfileUseCase {
   constructor() {
@@ -12,6 +13,7 @@ class EnrichProfileUseCase {
     this.geminiClient = new GeminiAPIClient();
     this.mockDataService = new MockDataService();
     this.approvalRepository = new EmployeeProfileApprovalRepository();
+    this.microserviceClient = new MicroserviceClient();
   }
 
   /**
@@ -84,6 +86,37 @@ class EnrichProfileUseCase {
         bio,
         projectSummaries
       );
+
+      // Send skills data to Skills Engine for normalization (after enrichment)
+      try {
+        // Get employee roles to determine employee type
+        const rolesQuery = 'SELECT role_type FROM employee_roles WHERE employee_id = $1';
+        const rolesResult = await this.employeeRepository.pool.query(rolesQuery, [employeeId]);
+        const roles = rolesResult.rows.map(row => row.role_type);
+        const isTrainer = roles.includes('TRAINER');
+        const employeeType = isTrainer ? 'trainer' : 'regular_employee';
+
+        // Prepare raw data for Skills Engine
+        const rawData = {
+          linkedin: linkedinData,
+          github: githubData
+        };
+
+        console.log('[EnrichProfileUseCase] Sending skills data to Skills Engine...');
+        const skillsResult = await this.microserviceClient.getEmployeeSkills(
+          employee.employee_id,
+          employee.company_id.toString(),
+          employeeType,
+          rawData
+        );
+        console.log('[EnrichProfileUseCase] ✅ Skills Engine processed data:', {
+          competencies_count: skillsResult.competencies?.length || 0,
+          relevance_score: skillsResult.relevance_score || 0
+        });
+      } catch (error) {
+        // Skills Engine call is not critical - log and continue
+        console.warn('[EnrichProfileUseCase] ⚠️  Skills Engine call failed (non-critical):', error.message);
+      }
 
       // Create approval request for HR review
       console.log('[EnrichProfileUseCase] Creating approval request for employee:', employeeId, 'company:', employee.company_id);

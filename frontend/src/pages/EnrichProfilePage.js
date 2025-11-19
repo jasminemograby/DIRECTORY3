@@ -61,12 +61,17 @@ function EnrichProfilePage() {
             setGithubConnected(newGithubStatus);
             
             // Show success message based on what was just connected
+            const enrichedParam = searchParams.get('enriched');
             if (linkedinParam === 'connected' && !newGithubStatus) {
               setSuccessMessage('✓ LinkedIn connected successfully! Please connect GitHub to continue.');
             } else if (githubParam === 'connected' && !newLinkedinStatus) {
               setSuccessMessage('✓ GitHub connected successfully! Please connect LinkedIn to continue.');
             } else if (newLinkedinStatus && newGithubStatus) {
-              setSuccessMessage('✓ Both LinkedIn and GitHub connected! Redirecting to your profile...');
+              if (enrichedParam === 'true') {
+                setSuccessMessage('✓ Both LinkedIn and GitHub connected! Profile enriched successfully. Redirecting...');
+              } else {
+                setSuccessMessage('✓ Both LinkedIn and GitHub connected! Enriching your profile...');
+              }
             }
             
             // Clear success message after 5 seconds (unless both are connected, then redirect will happen)
@@ -97,18 +102,26 @@ function EnrichProfilePage() {
     }
   }, [searchParams, refreshUser]);
 
-  // Auto-redirect to profile when both are connected
+  // Auto-redirect to profile when both are connected AND enrichment is complete
   useEffect(() => {
+    const enrichedParam = searchParams.get('enriched');
+    const isEnriched = enrichedParam === 'true';
+    
     if (linkedinConnected && githubConnected && user && !refreshing) {
-      // Both connected - wait a moment to show success, then redirect
-      setSuccessMessage('Both LinkedIn and GitHub connected! Redirecting to your profile...');
-      const timer = setTimeout(() => {
-        navigate(`/employee/${user.id}`);
-      }, 2000); // 2 second delay to show success message
+      if (isEnriched) {
+        // Enrichment completed - redirect to profile
+        setSuccessMessage('✓ Profile enriched successfully! Redirecting to your profile...');
+        const timer = setTimeout(() => {
+          navigate(`/employee/${user.id}?enrichment=complete`);
+        }, 2000); // 2 second delay to show success message
 
-      return () => clearTimeout(timer);
+        return () => clearTimeout(timer);
+      } else {
+        // Both connected but enrichment not yet complete - show waiting message
+        setSuccessMessage('✓ Both LinkedIn and GitHub connected! Enriching your profile...');
+      }
     }
-  }, [linkedinConnected, githubConnected, user, navigate, refreshing]);
+  }, [linkedinConnected, githubConnected, user, navigate, refreshing, searchParams]);
 
   // Check if user already has both LinkedIn and GitHub connected - redirect to profile
   useEffect(() => {
@@ -120,9 +133,15 @@ function EnrichProfilePage() {
   }, [user, navigate]);
 
   // If no user after loading, redirect to login
-  // But only if we're sure auth has finished loading and there's really no user
+  // BUT: Don't redirect if we just came from OAuth callback (check URL params first)
   useEffect(() => {
-    if (!authLoading && !user && !refreshing) {
+    // Check if we're coming from OAuth callback - if so, don't redirect to login
+    const linkedinParam = searchParams.get('linkedin');
+    const githubParam = searchParams.get('github');
+    const errorParam = searchParams.get('error');
+    const isOAuthCallback = linkedinParam === 'connected' || githubParam === 'connected' || errorParam;
+
+    if (!authLoading && !user && !refreshing && !isOAuthCallback) {
       // Double-check token exists before redirecting
       const token = localStorage.getItem('auth_token');
       if (!token) {
@@ -145,7 +164,7 @@ function EnrichProfilePage() {
           });
       }
     }
-  }, [authLoading, user, navigate, refreshing, refreshUser]);
+  }, [authLoading, user, navigate, refreshing, refreshUser, searchParams]);
 
   // Show loading state while checking auth or refreshing user data
   if (authLoading || refreshing) {
