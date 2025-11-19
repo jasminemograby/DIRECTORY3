@@ -23,6 +23,7 @@ function EmployeeProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [employee, setEmployee] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     const fetchEmployee = async () => {
