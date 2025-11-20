@@ -266,11 +266,20 @@ function EnrichProfilePage() {
   // BUT: Don't redirect if we just came from OAuth callback (check URL params first)
   useEffect(() => {
     // Check if we're coming from OAuth callback - if so, NEVER redirect to login
+    // OAuth callbacks include: success indicators, errors, tokens, or enriched status
     const linkedinParam = searchParams.get('linkedin');
     const githubParam = searchParams.get('github');
     const errorParam = searchParams.get('error');
     const enrichedParam = searchParams.get('enriched');
-    const isOAuthCallback = linkedinParam === 'connected' || githubParam === 'connected' || errorParam || enrichedParam === 'true';
+    const tokenParam = searchParams.get('token');
+    
+    // OAuth callback is detected by any of these indicators
+    // Use !! to ensure boolean, not string value
+    const isOAuthCallback = linkedinParam === 'connected' || 
+                            githubParam === 'connected' || 
+                            !!errorParam ||  // OAuth errors are still OAuth callbacks
+                            enrichedParam === 'true' ||
+                            !!tokenParam;     // Token in URL indicates OAuth callback
 
     console.log('[EnrichProfilePage] Auth check - loading:', authLoading, 'user:', !!user, 'refreshing:', refreshing, 'isOAuthCallback:', isOAuthCallback);
 
