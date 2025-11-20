@@ -75,6 +75,11 @@ class OAuthController {
       const result = await this.connectLinkedInUseCase.handleCallback(code, state);
       console.log('[OAuthController] LinkedIn connected successfully for employee:', result.employee.id);
 
+      // Generate dummy token for the employee (same format as login)
+      const employee = result.employee;
+      const dummyToken = `dummy-token-${employee.id}-${employee.email}-${Date.now()}`;
+      console.log('[OAuthController] Generated dummy token for employee:', employee.id);
+
       // Check if both OAuth connections are complete
       const employeeId = result.employee.id;
       const isReady = await this.enrichProfileUseCase.isReadyForEnrichment(employeeId);
@@ -88,18 +93,18 @@ class OAuthController {
           const enrichmentResult = await this.enrichProfileUseCase.enrichProfile(employeeId);
           console.log('[OAuthController] ✅ Profile enrichment completed:', enrichmentResult);
           
-          // After enrichment completes, redirect to enrich page with both connected status
+          // After enrichment completes, redirect to enrich page with both connected status and token
           // Frontend will show both checkmarks and then auto-redirect to profile
-          return res.redirect(`${frontendUrl}/enrich?linkedin=connected&github=connected&enriched=true`);
+          return res.redirect(`${frontendUrl}/enrich?linkedin=connected&github=connected&enriched=true&token=${encodeURIComponent(dummyToken)}`);
         } catch (error) {
           console.error('[OAuthController] ❌ Enrichment failed:', error);
-          // Still redirect to enrich page, but with error
-          return res.redirect(`${frontendUrl}/enrich?linkedin=connected&github=connected&error=${encodeURIComponent(error.message)}`);
+          // Still redirect to enrich page, but with error and token
+          return res.redirect(`${frontendUrl}/enrich?linkedin=connected&github=connected&error=${encodeURIComponent(error.message)}&token=${encodeURIComponent(dummyToken)}`);
         }
       } else {
-        // Only LinkedIn connected - go back to enrich page to connect GitHub
+        // Only LinkedIn connected - go back to enrich page to connect GitHub with token
         console.log('[OAuthController] LinkedIn connected, waiting for GitHub. Redirecting back to enrich page');
-        return res.redirect(`${frontendUrl}/enrich?linkedin=connected`);
+        return res.redirect(`${frontendUrl}/enrich?linkedin=connected&token=${encodeURIComponent(dummyToken)}`);
       }
     } catch (error) {
       console.error('[OAuthController] LinkedIn callback error:', error);
@@ -161,6 +166,11 @@ class OAuthController {
       const result = await this.connectGitHubUseCase.handleCallback(code, state);
       console.log('[OAuthController] GitHub connected successfully for employee:', result.employee.id);
 
+      // Generate dummy token for the employee (same format as login)
+      const employee = result.employee;
+      const dummyToken = `dummy-token-${employee.id}-${employee.email}-${Date.now()}`;
+      console.log('[OAuthController] Generated dummy token for employee:', employee.id);
+
       // Check if both OAuth connections are complete
       const employeeId = result.employee.id;
       const isReady = await this.enrichProfileUseCase.isReadyForEnrichment(employeeId);
@@ -174,18 +184,18 @@ class OAuthController {
           const enrichmentResult = await this.enrichProfileUseCase.enrichProfile(employeeId);
           console.log('[OAuthController] ✅ Profile enrichment completed:', enrichmentResult);
           
-          // After enrichment completes, redirect to enrich page with both connected status
+          // After enrichment completes, redirect to enrich page with both connected status and token
           // Frontend will show both checkmarks and then auto-redirect to profile
-          return res.redirect(`${frontendUrl}/enrich?linkedin=connected&github=connected&enriched=true`);
+          return res.redirect(`${frontendUrl}/enrich?linkedin=connected&github=connected&enriched=true&token=${encodeURIComponent(dummyToken)}`);
         } catch (error) {
           console.error('[OAuthController] ❌ Enrichment failed:', error);
-          // Still redirect to enrich page, but with error
-          return res.redirect(`${frontendUrl}/enrich?linkedin=connected&github=connected&error=${encodeURIComponent(error.message)}`);
+          // Still redirect to enrich page, but with error and token
+          return res.redirect(`${frontendUrl}/enrich?linkedin=connected&github=connected&error=${encodeURIComponent(error.message)}&token=${encodeURIComponent(dummyToken)}`);
         }
       } else {
-        // Only GitHub connected - go back to enrich page to connect LinkedIn
+        // Only GitHub connected - go back to enrich page to connect LinkedIn with token
         console.log('[OAuthController] GitHub connected, waiting for LinkedIn. Redirecting back to enrich page');
-        return res.redirect(`${frontendUrl}/enrich?github=connected`);
+        return res.redirect(`${frontendUrl}/enrich?github=connected&token=${encodeURIComponent(dummyToken)}`);
       }
     } catch (error) {
       console.error('[OAuthController] GitHub callback error:', error);

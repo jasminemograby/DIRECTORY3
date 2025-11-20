@@ -40,6 +40,19 @@ function EnrichProfilePage() {
     const linkedinParam = searchParams.get('linkedin');
     const githubParam = searchParams.get('github');
     const errorParam = searchParams.get('error');
+    const tokenParam = searchParams.get('token');
+
+    // CRITICAL: Extract and store token from OAuth callback if present
+    if (tokenParam) {
+      console.log('[EnrichProfilePage] Token received from OAuth callback, storing in localStorage');
+      localStorage.setItem('auth_token', tokenParam);
+      
+      // If we have a stored user, keep it. Otherwise, we'll need to fetch user data
+      const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+      if (!storedUser) {
+        console.warn('[EnrichProfilePage] Token received but no user in localStorage - will need to fetch user data');
+      }
+    }
 
     if (errorParam) {
       setError(decodeURIComponent(errorParam));
@@ -129,8 +142,10 @@ function EnrichProfilePage() {
         })
         .finally(() => {
           setRefreshing(false);
-          // Clear URL params after processing
-          window.history.replaceState({}, document.title, window.location.pathname);
+          // Clear URL params after processing (but keep token in localStorage)
+          const newUrl = new URL(window.location.href);
+          newUrl.searchParams.delete('token'); // Remove token from URL for security
+          window.history.replaceState({}, document.title, newUrl.pathname + newUrl.search);
         });
     }
   }, [searchParams, refreshUser]);
