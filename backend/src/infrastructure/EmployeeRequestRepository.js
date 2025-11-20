@@ -44,8 +44,19 @@ class EmployeeRequestRepository {
 
     const values = [employee_id, company_id, request_type, title, description || null];
     const queryRunner = client || this.pool;
-    const result = await queryRunner.query(query, values);
-    return result.rows[0];
+    
+    try {
+      const result = await queryRunner.query(query, values);
+      console.log('[EmployeeRequestRepository] ✅ Request created successfully:', result.rows[0]?.id);
+      return result.rows[0];
+    } catch (error) {
+      if (error.code === '42P01') {
+        // Table doesn't exist
+        console.error('[EmployeeRequestRepository] ❌ Table employee_requests does not exist. Please run the migration script.');
+        throw new Error('Database table employee_requests does not exist. Please contact your administrator to run the database migration.');
+      }
+      throw error;
+    }
   }
 
   /**
@@ -67,8 +78,17 @@ class EmployeeRequestRepository {
       ORDER BY er.requested_at DESC
     `;
 
-    const result = await this.pool.query(query, [employeeId]);
-    return result.rows;
+    try {
+      const result = await this.pool.query(query, [employeeId]);
+      return result.rows;
+    } catch (error) {
+      if (error.code === '42P01') {
+        // Table doesn't exist
+        console.error('[EmployeeRequestRepository] ❌ Table employee_requests does not exist. Please run the migration script.');
+        throw new Error('Database table employee_requests does not exist. Please contact your administrator to run the database migration.');
+      }
+      throw error;
+    }
   }
 
   /**

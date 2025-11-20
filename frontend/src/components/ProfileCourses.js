@@ -5,15 +5,16 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getEmployeeCourses } from '../services/employeeService';
 
-function ProfileCourses({ employeeId, user }) {
+function ProfileCourses({ employeeId, user, employee }) {
   const { user: authUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [coursesData, setCoursesData] = useState(null);
   const [taughtCourses, setTaughtCourses] = useState([]);
   
-  // Determine if user is a trainer
-  const isTrainer = user?.is_trainer || (user?.roles && Array.isArray(user.roles) && user.roles.includes('TRAINER'));
+  // Determine if employee is a trainer - check employee prop first, then user prop
+  const employeeData = employee || user;
+  const isTrainer = employeeData?.is_trainer || (employeeData?.roles && Array.isArray(employeeData.roles) && employeeData.roles.includes('TRAINER'));
 
   useEffect(() => {
     const fetchCourses = async () => {

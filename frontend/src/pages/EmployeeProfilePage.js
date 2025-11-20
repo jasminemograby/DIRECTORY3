@@ -322,21 +322,12 @@ function EmployeeProfilePage() {
                 Professional Links
               </h2>
               <div className="flex gap-4">
-                {employee.linkedin_url && employee.linkedin_url !== 'undefined' && !employee.linkedin_url.includes('404') && (
+                {employee.linkedin_url && employee.linkedin_url !== 'undefined' && (
                   <a
                     href={employee.linkedin_url.startsWith('http') ? employee.linkedin_url : `https://${employee.linkedin_url}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-teal-600 hover:text-teal-700 underline"
-                    onClick={(e) => {
-                      // Validate URL before opening
-                      const url = employee.linkedin_url.startsWith('http') ? employee.linkedin_url : `https://${employee.linkedin_url}`;
-                      // Check if URL looks like a valid LinkedIn profile URL
-                      if (!url.includes('linkedin.com/in/') || url.includes('undefined') || url.includes('404')) {
-                        e.preventDefault();
-                        alert('LinkedIn profile URL is not available. Please update your profile with a valid LinkedIn URL.');
-                      }
-                    }}
                   >
                     LinkedIn Profile
                   </a>
@@ -578,6 +569,7 @@ function EmployeeProfilePage() {
             <ApprovedProfileTabs 
               employeeId={employeeId}
               user={user}
+              employee={employee}
             />
           </div>
         )}
