@@ -80,7 +80,7 @@ class CSVParser {
       current_role_in_company: this.trimValue(row.current_role_in_company),
       target_role_in_company: this.trimValue(row.target_role_in_company),
       manager_id: this.trimValuePreserveEmpty(row.manager_id), // Preserve empty strings for manager_id
-      password: this.trimValue(row.password),
+      password: this.trimValuePreserveEmpty(row.password) || null, // Preserve password, but allow null if empty
       preferred_language: this.trimValue(row.preferred_language),
       status: this.normalizeEmployeeStatus(this.trimValue(row.status)) || 'active',
       

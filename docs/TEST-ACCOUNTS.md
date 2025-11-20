@@ -65,7 +65,11 @@
 - **Role:** Regular Employee + Department Manager
 - **Employee ID:** EMP006
 
-## Testing Flow
+## ⚠️ IMPORTANT: Before Testing
+
+**You MUST upload the CSV file before trying to log in!**
+
+The test accounts are created when you upload the CSV file. If you try to log in before uploading the CSV, you will get "Invalid email or password" error.
 
 ### Step 1: Company Registration
 1. Go to registration page
