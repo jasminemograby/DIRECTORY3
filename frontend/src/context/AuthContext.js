@@ -25,61 +25,78 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        // Check if we're coming from OAuth callback - preserve token during OAuth flow
+        // CRITICAL: Check for OAuth callback FIRST, before any token operations
+        // This prevents token from being cleared during OAuth redirects
         const urlParams = new URLSearchParams(window.location.search);
         const isOAuthCallback = urlParams.get('linkedin') === 'connected' || 
                                 urlParams.get('github') === 'connected' || 
                                 urlParams.get('error') ||
                                 urlParams.get('enriched') === 'true';
 
+        console.log('[AuthContext] Initializing auth, isOAuthCallback:', isOAuthCallback);
+
         const storedUser = authService.getCurrentUser();
         const token = authService.getToken();
 
-        if (token && storedUser) {
-          // If OAuth callback, use stored user immediately without validation
-          // This prevents token loss during OAuth redirects
-          if (isOAuthCallback) {
-            console.log('[AuthContext] OAuth callback detected, using stored user without validation');
+        console.log('[AuthContext] Token exists:', !!token, 'Stored user exists:', !!storedUser);
+
+        // If OAuth callback, ALWAYS preserve token and user, skip validation
+        if (isOAuthCallback) {
+          console.log('[AuthContext] ⚠️ OAuth callback detected - preserving token and user without validation');
+          if (token && storedUser) {
             setUser(storedUser);
             setIsAuthenticated(true);
             setLoading(false);
             return;
+          } else if (storedUser) {
+            // Even if token is missing, preserve user during OAuth
+            console.warn('[AuthContext] Token missing during OAuth callback, but preserving user');
+            setUser(storedUser);
+            setIsAuthenticated(true);
+            setLoading(false);
+            return;
+          } else {
+            console.warn('[AuthContext] No token or user found during OAuth callback');
+            // Don't clear anything during OAuth - just set to null
+            setUser(null);
+            setIsAuthenticated(false);
+            setLoading(false);
+            return;
           }
+        }
 
-          // Validate token with server (only if not OAuth callback)
+        // Normal flow (not OAuth callback) - validate token
+        if (token && storedUser) {
+          // Validate token with server
           const validation = await authService.validateToken();
           if (validation.valid) {
             setUser(validation.user || storedUser);
             setIsAuthenticated(true);
           } else {
-            // Token invalid, clear storage (but not during OAuth flow)
-            if (!isOAuthCallback) {
-              authService.logout();
-              setUser(null);
-              setIsAuthenticated(false);
-            } else {
-              // During OAuth, keep the stored user even if validation fails
-              console.warn('[AuthContext] Token validation failed during OAuth, but preserving session');
-              setUser(storedUser);
-              setIsAuthenticated(true);
-            }
+            // Token invalid, clear storage
+            console.log('[AuthContext] Token validation failed, clearing storage');
+            authService.logout();
+            setUser(null);
+            setIsAuthenticated(false);
           }
         } else {
           setUser(null);
           setIsAuthenticated(false);
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
+        console.error('[AuthContext] Auth initialization error:', error);
         // During OAuth callback, try to preserve stored user
         const urlParams = new URLSearchParams(window.location.search);
         const isOAuthCallback = urlParams.get('linkedin') === 'connected' || 
-                                urlParams.get('github') === 'connected';
+                                urlParams.get('github') === 'connected' ||
+                                urlParams.get('enriched') === 'true';
         if (isOAuthCallback) {
           const storedUser = authService.getCurrentUser();
-          if (storedUser) {
-            console.warn('[AuthContext] Error during OAuth callback, but preserving stored user');
+          const token = authService.getToken();
+          if (storedUser || token) {
+            console.warn('[AuthContext] Error during OAuth callback, but preserving stored user/token');
             setUser(storedUser);
-            setIsAuthenticated(true);
+            setIsAuthenticated(!!storedUser);
           } else {
             setUser(null);
             setIsAuthenticated(false);

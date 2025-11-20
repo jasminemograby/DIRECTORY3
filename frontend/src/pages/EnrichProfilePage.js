@@ -168,13 +168,39 @@ function EnrichProfilePage() {
   // If no user after loading, redirect to login
   // BUT: Don't redirect if we just came from OAuth callback (check URL params first)
   useEffect(() => {
-    // Check if we're coming from OAuth callback - if so, don't redirect to login
+    // Check if we're coming from OAuth callback - if so, NEVER redirect to login
     const linkedinParam = searchParams.get('linkedin');
     const githubParam = searchParams.get('github');
     const errorParam = searchParams.get('error');
     const enrichedParam = searchParams.get('enriched');
     const isOAuthCallback = linkedinParam === 'connected' || githubParam === 'connected' || errorParam || enrichedParam === 'true';
 
+    console.log('[EnrichProfilePage] Auth check - loading:', authLoading, 'user:', !!user, 'refreshing:', refreshing, 'isOAuthCallback:', isOAuthCallback);
+
+    // During OAuth callback, ALWAYS try to restore user from localStorage
+    if (isOAuthCallback && !user && !authLoading) {
+      const token = localStorage.getItem('auth_token');
+      const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
+      
+      console.log('[EnrichProfilePage] OAuth callback detected - token:', !!token, 'storedUser:', !!storedUser);
+      
+      if (token && storedUser) {
+        console.log('[EnrichProfilePage] Restoring user from localStorage during OAuth callback');
+        // Don't call refreshUser here - it might clear the token
+        // Instead, wait for AuthContext to restore it
+        // But if AuthContext doesn't, we'll show the page anyway
+        return; // Don't redirect, let the page render
+      } else if (storedUser) {
+        // Even if token is missing, preserve user during OAuth
+        console.warn('[EnrichProfilePage] Token missing but user exists during OAuth - preserving');
+        return; // Don't redirect
+      } else {
+        console.warn('[EnrichProfilePage] No token or user during OAuth callback - but not redirecting');
+        return; // Don't redirect during OAuth callback
+      }
+    }
+
+    // Normal flow (not OAuth callback) - check auth and redirect if needed
     if (!authLoading && !user && !refreshing && !isOAuthCallback) {
       // Double-check token exists before redirecting
       const token = localStorage.getItem('auth_token');
@@ -185,9 +211,8 @@ function EnrichProfilePage() {
         navigate('/login');
       } else if (storedUser) {
         // Token exists and we have stored user - restore from localStorage
-        // This handles the case where OAuth redirect cleared the user state
         console.log('[EnrichProfilePage] Token exists, restoring user from localStorage');
-        // The AuthContext should handle this, but if it doesn't, we'll wait a bit
+        // Wait a bit for AuthContext to restore
         setTimeout(() => {
           if (!user) {
             console.log('[EnrichProfilePage] User still null after timeout, redirecting to login');
@@ -196,7 +221,6 @@ function EnrichProfilePage() {
         }, 2000);
       } else {
         // Token exists but user is null - might be a validation issue
-        // Try to refresh user data once more before redirecting
         console.log('[EnrichProfilePage] Token exists but user is null, attempting to refresh...');
         refreshUser()
           .then((refreshedUser) => {
@@ -209,18 +233,6 @@ function EnrichProfilePage() {
             console.log('[EnrichProfilePage] Refresh error, redirecting to login');
             navigate('/login');
           });
-      }
-    } else if (isOAuthCallback && !user && !authLoading) {
-      // OAuth callback but no user - try to restore from localStorage
-      const token = localStorage.getItem('auth_token');
-      const storedUser = JSON.parse(localStorage.getItem('user') || 'null');
-      
-      if (token && storedUser) {
-        console.log('[EnrichProfilePage] OAuth callback detected, restoring user from localStorage');
-        // Force refresh to restore user state
-        refreshUser().catch(err => {
-          console.error('[EnrichProfilePage] Failed to refresh user after OAuth:', err);
-        });
       }
     }
   }, [authLoading, user, navigate, refreshing, refreshUser, searchParams]);
