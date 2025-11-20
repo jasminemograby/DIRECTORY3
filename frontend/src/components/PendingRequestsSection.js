@@ -18,7 +18,9 @@ function PendingRequestsSection({ companyId }) {
         setError(null);
         console.log('[PendingRequestsSection] Fetching pending requests for company:', companyId);
         const response = await getCompanyRequests(companyId, 'pending');
-        console.log('[PendingRequestsSection] Response:', response);
+        console.log('[PendingRequestsSection] Full response object:', response);
+        // getCompanyRequests returns response.data, which is { success: true, requests: [...] }
+        // So we need to access response.requests directly (not response.data.requests)
         const requestsData = response?.requests || response?.data?.requests || response?.response?.requests || [];
         console.log('[PendingRequestsSection] Parsed requests:', requestsData.length, requestsData);
         setRequests(requestsData);

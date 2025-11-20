@@ -111,10 +111,14 @@ export const getCompanyRequests = async (companyId, status = null) => {
     const url = status 
       ? `/companies/${companyId}/requests?status=${status}`
       : `/companies/${companyId}/requests`;
+    console.log('[getCompanyRequests] Calling API:', url);
     const response = await api.get(url);
+    console.log('[getCompanyRequests] Raw response:', response);
+    console.log('[getCompanyRequests] response.data:', response.data);
     return response.data;
   } catch (error) {
     console.error('Get company requests error:', error);
+    console.error('Error response:', error.response?.data);
     throw error;
   }
 };

@@ -52,6 +52,13 @@ class SubmitEmployeeRequestUseCase {
       }
 
       // Create request
+      console.log('[SubmitEmployeeRequestUseCase] Creating request with:', {
+        employee_id: employeeId,
+        company_id: companyId,
+        request_type,
+        title: title.trim()
+      });
+      
       const request = await this.requestRepository.create({
         employee_id: employeeId,
         company_id: companyId,
@@ -64,21 +71,23 @@ class SubmitEmployeeRequestUseCase {
         id: request.id,
         employee_id: request.employee_id,
         company_id: request.company_id,
+        company_id_type: typeof request.company_id,
         request_type: request.request_type,
         status: request.status,
         title: request.title
       });
       
-      // Verify the request was created correctly
-      const verifyRequest = await this.requestRepository.findById(request.id);
-      if (!verifyRequest) {
-        throw new Error('Request was created but could not be retrieved');
+      // Verify the request can be found by company_id
+      const verifyByCompany = await this.requestRepository.findByCompanyId(companyId, 'pending');
+      console.log('[SubmitEmployeeRequestUseCase] ✅ Verification: Found', verifyByCompany.length, 'pending requests for company', companyId);
+      if (verifyByCompany.length > 0) {
+        const foundRequest = verifyByCompany.find(r => r.id === request.id);
+        if (foundRequest) {
+          console.log('[SubmitEmployeeRequestUseCase] ✅ Request found in company query:', foundRequest.id);
+        } else {
+          console.warn('[SubmitEmployeeRequestUseCase] ⚠️ Request created but not found in company query!');
+        }
       }
-      console.log('[SubmitEmployeeRequestUseCase] ✅ Request verified in database:', {
-        id: verifyRequest.id,
-        company_id: verifyRequest.company_id,
-        status: verifyRequest.status
-      });
 
       return {
         success: true,

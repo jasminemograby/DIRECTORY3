@@ -120,8 +120,19 @@ class EmployeeRequestRepository {
     query += ' ORDER BY er.requested_at DESC';
 
     try {
+      console.log(`[EmployeeRequestRepository] Query: ${query}`);
+      console.log(`[EmployeeRequestRepository] Values:`, values);
       const result = await this.pool.query(query, values);
       console.log(`[EmployeeRequestRepository] ✅ Found ${result.rows.length} requests for company ${companyId} with status ${status || 'all'}`);
+      if (result.rows.length > 0) {
+        console.log(`[EmployeeRequestRepository] Sample request:`, {
+          id: result.rows[0].id,
+          company_id: result.rows[0].company_id,
+          employee_id: result.rows[0].employee_id,
+          status: result.rows[0].status,
+          title: result.rows[0].title
+        });
+      }
       return result.rows;
     } catch (error) {
       if (error.code === '42P01') {
