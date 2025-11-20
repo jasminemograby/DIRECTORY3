@@ -4,85 +4,62 @@
 import React, { useState, useEffect } from 'react';
 import { getCompanyRequests } from '../services/employeeService';
 
-function PendingRequestsSection({ companyId }) {
+function PendingRequestsSection({ companyId, onRequestsLoaded }) {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchRequests = async () => {
       if (!companyId) return;
 
       try {
         setLoading(true);
         setError(null);
-        console.log('[PendingRequestsSection] Fetching pending requests for company:', companyId);
         const response = await getCompanyRequests(companyId, 'pending');
-        console.log('[PendingRequestsSection] Full response object:', response);
-        // getCompanyRequests returns response.data, which is { success: true, requests: [...] }
-        // So we need to access response.requests directly (not response.data.requests)
-        const requestsData = response?.requests || response?.data?.requests || response?.response?.requests || [];
-        console.log('[PendingRequestsSection] Parsed requests:', requestsData.length, requestsData);
-        setRequests(requestsData);
+        // Handle envelope structure: { requester_service: 'directory_service', response: { success: true, requests: [...] } }
+        const requestsData = response?.response?.requests || response?.requests || response?.data?.requests || [];
+        
+        if (isMounted) {
+          setRequests(requestsData);
+          // Notify parent of the count
+          if (onRequestsLoaded) {
+            onRequestsLoaded(requestsData.length);
+          }
+        }
       } catch (err) {
         console.error('[PendingRequestsSection] Error fetching requests:', err);
-        setError('Failed to load pending requests.');
-        setRequests([]);
+        if (isMounted) {
+          setError('Failed to load pending requests.');
+          setRequests([]);
+          if (onRequestsLoaded) {
+            onRequestsLoaded(0);
+          }
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchRequests();
-  }, [companyId]);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [companyId, onRequestsLoaded]);
 
-  const handleApprove = async (requestId) => {
+  const handleApprove = (requestId) => {
     console.log('Approve request:', requestId);
-    // TODO: Implement approval logic via API
-    // After approval, refresh the requests list
-    const fetchRequests = async () => {
-      if (!companyId) return;
-      try {
-        const response = await getCompanyRequests(companyId, 'pending');
-        const requestsData = response?.requests || response?.data?.requests || response?.response?.requests || [];
-        setRequests(requestsData);
-      } catch (err) {
-        console.error('[PendingRequestsSection] Error refreshing requests:', err);
-      }
-    };
-    await fetchRequests();
+    // TODO: Implement approval logic
   };
 
-  const handleReject = async (requestId) => {
+  const handleReject = (requestId) => {
     console.log('Reject request:', requestId);
-    // TODO: Implement rejection logic via API
-    // After rejection, refresh the requests list
-    const fetchRequests = async () => {
-      if (!companyId) return;
-      try {
-        const response = await getCompanyRequests(companyId, 'pending');
-        const requestsData = response?.requests || response?.data?.requests || response?.response?.requests || [];
-        setRequests(requestsData);
-      } catch (err) {
-        console.error('[PendingRequestsSection] Error refreshing requests:', err);
-      }
-    };
-    await fetchRequests();
-  };
-  
-  const handleRefresh = async () => {
-    if (!companyId) return;
-    try {
-      setLoading(true);
-      const response = await getCompanyRequests(companyId, 'pending');
-      const requestsData = response?.requests || response?.data?.requests || response?.response?.requests || [];
-      setRequests(requestsData);
-    } catch (err) {
-      console.error('[PendingRequestsSection] Error refreshing requests:', err);
-      setError('Failed to refresh requests.');
-    } finally {
-      setLoading(false);
-    }
+    // TODO: Implement rejection logic
   };
 
   const getRequestTypeLabel = (type) => {
@@ -140,23 +117,13 @@ function PendingRequestsSection({ companyId }) {
 
   return (
     <div className="space-y-4">
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-            Pending Requests ({requests.length})
-          </h3>
-          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            Review and approve employee requests
-          </p>
-        </div>
-        <button
-          onClick={handleRefresh}
-          disabled={loading}
-          className="px-4 py-2 text-sm border rounded hover:bg-opacity-50 transition-colors disabled:opacity-50"
-          style={{ borderColor: 'var(--border-default)', color: 'var(--text-primary)' }}
-        >
-          {loading ? 'Refreshing...' : 'Refresh'}
-        </button>
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+          Pending Requests ({requests.length})
+        </h3>
+        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+          Review and approve employee requests
+        </p>
       </div>
 
       {requests.length === 0 ? (

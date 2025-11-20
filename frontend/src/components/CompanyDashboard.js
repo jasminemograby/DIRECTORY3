@@ -13,6 +13,7 @@ import PendingProfileApprovals from './PendingProfileApprovals';
 function CompanyDashboard({ company, departments, teams, employees, hierarchy, metrics, pendingApprovals = [], onEmployeeClick, companyId }) {
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'dashboard', 'hierarchy', 'employees', 'enrollment', 'requests', 'approvals'
   const [refreshKey, setRefreshKey] = useState(0);
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
 
   return (
     <div className="w-full space-y-6">
@@ -90,7 +91,7 @@ function CompanyDashboard({ company, departments, teams, employees, hierarchy, m
         </button>
         <button
           onClick={() => setActiveTab('requests')}
-          className={`px-4 py-2 font-medium transition-colors ${
+          className={`px-4 py-2 font-medium transition-colors relative ${
             activeTab === 'requests'
               ? 'border-b-2 border-teal-600 text-teal-600'
               : 'text-gray-600 hover:text-gray-800'
@@ -101,6 +102,11 @@ function CompanyDashboard({ company, departments, teams, employees, hierarchy, m
           }}
         >
           Pending Requests
+          {(() => {
+            // Count pending requests - we need to fetch this or pass it as prop
+            // For now, we'll add the count when we have the data
+            return null;
+          })()}
         </button>
         <button
           onClick={() => setActiveTab('approvals')}
@@ -202,7 +208,10 @@ function CompanyDashboard({ company, departments, teams, employees, hierarchy, m
 
         {activeTab === 'requests' && (
           <div>
-            <PendingRequestsSection companyId={companyId} />
+            <PendingRequestsSection 
+              companyId={companyId} 
+              onRequestsLoaded={(count) => setPendingRequestsCount(count)}
+            />
           </div>
         )}
 
