@@ -135,6 +135,21 @@ class EmployeeController {
         });
       }
 
+      // Fetch department and team names
+      const deptTeamQuery = `
+        SELECT 
+          d.department_name,
+          t.team_name
+        FROM employees e
+        LEFT JOIN employee_teams et ON e.id = et.employee_id
+        LEFT JOIN teams t ON et.team_id = t.id
+        LEFT JOIN departments d ON t.department_id = d.id
+        WHERE e.id = $1
+        LIMIT 1
+      `;
+      const deptTeamResult = await this.employeeRepository.pool.query(deptTeamQuery, [employeeId]);
+      const deptTeam = deptTeamResult.rows[0] || {};
+
       // Fetch project summaries if enrichment is completed
       let projectSummaries = [];
       if (employee.enrichment_completed) {
@@ -162,14 +177,16 @@ class EmployeeController {
       const roles = rolesResult.rows.map(row => row.role_type);
       const isDecisionMaker = roles.includes('DECISION_MAKER');
 
-      // Combine employee data with project summaries, trainer settings, and roles
+      // Combine employee data with project summaries, trainer settings, roles, department, and team
       const employeeData = {
         ...employee,
         project_summaries: projectSummaries,
         is_trainer: isTrainer,
         trainer_settings: trainerSettings,
         roles: roles,
-        is_decision_maker: isDecisionMaker
+        is_decision_maker: isDecisionMaker,
+        department: deptTeam.department_name || null,
+        team: deptTeam.team_name || null
       };
 
       res.status(200).json({

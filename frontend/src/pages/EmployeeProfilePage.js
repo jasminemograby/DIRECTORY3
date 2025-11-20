@@ -303,10 +303,6 @@ function EmployeeProfilePage() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Employee ID</p>
-                <p style={{ color: 'var(--text-primary)' }}>{employee.employee_id || 'N/A'}</p>
-              </div>
-              <div>
                 <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>Email</p>
                 <p style={{ color: 'var(--text-primary)' }}>{employee.email || 'N/A'}</p>
               </div>
@@ -331,9 +327,9 @@ function EmployeeProfilePage() {
                 Professional Links
               </h2>
               <div className="flex gap-4">
-                {employee.linkedin_url && (
+                {employee.linkedin_url && employee.linkedin_url !== 'undefined' && (
                   <a
-                    href={employee.linkedin_url}
+                    href={employee.linkedin_url.startsWith('http') ? employee.linkedin_url : `https://${employee.linkedin_url}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-teal-600 hover:text-teal-700 underline"
@@ -341,9 +337,9 @@ function EmployeeProfilePage() {
                     LinkedIn Profile
                   </a>
                 )}
-                {employee.github_url && (
+                {employee.github_url && employee.github_url !== 'undefined' && (
                   <a
-                    href={employee.github_url}
+                    href={employee.github_url.startsWith('http') ? employee.github_url : `https://${employee.github_url}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-teal-600 hover:text-teal-700 underline"

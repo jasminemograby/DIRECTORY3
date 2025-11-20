@@ -77,9 +77,24 @@ class ConnectLinkedInUseCase {
       const profileData = await this.apiClient.getCompleteProfile(tokenResponse.access_token, useLegacyScopes);
 
       // Build LinkedIn profile URL
-      const linkedinUrl = profileData.id 
-        ? `https://www.linkedin.com/in/${profileData.id}` 
-        : `https://www.linkedin.com/profile/view?id=${profileData.id}`;
+      // LinkedIn OAuth2 provides 'id' or 'sub' field, but not the public profile username
+      // We'll use a generic profile URL format, or construct from available data
+      let linkedinUrl = null;
+      if (profileData.id) {
+        // Try to construct URL - LinkedIn API doesn't provide public username via OAuth2
+        // The ID from OAuth2 is not the same as the public profile slug
+        // For now, we'll store the ID and let users update it manually if needed
+        linkedinUrl = `https://www.linkedin.com/in/${profileData.id}`;
+      } else if (profileData.sub) {
+        // OpenID Connect uses 'sub' instead of 'id'
+        linkedinUrl = `https://www.linkedin.com/in/${profileData.sub}`;
+      }
+      
+      // If we couldn't construct a valid URL, don't store an invalid one
+      if (!linkedinUrl || linkedinUrl.includes('undefined')) {
+        console.warn('[ConnectLinkedInUseCase] ⚠️  Could not construct valid LinkedIn URL from profile data');
+        linkedinUrl = null; // Don't store invalid URLs
+      }
 
       // Store LinkedIn data in employee profile
       const updatedEmployee = await this.employeeRepository.updateLinkedInData(
