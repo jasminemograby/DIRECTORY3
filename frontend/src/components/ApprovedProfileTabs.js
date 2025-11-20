@@ -17,7 +17,6 @@ function ApprovedProfileTabs({ employeeId, user }) {
     { id: 'courses', label: 'Courses', component: ProfileCourses },
     { id: 'learning-path', label: 'Learning Path', component: LearningPath },
     { id: 'analytics', label: 'Analytics', component: ProfileAnalytics },
-    { id: 'dashboard', label: 'Dashboard', component: ProfileDashboard },
     { id: 'requests', label: 'Requests', component: ProfileRequests }
   ];
 
@@ -61,7 +60,7 @@ function ApprovedProfileTabs({ employeeId, user }) {
 
       {/* Tab Content */}
       <div>
-        {ActiveComponent && <ActiveComponent employeeId={employeeId} />}
+        {ActiveComponent && <ActiveComponent employeeId={employeeId} user={user} />}
       </div>
     </div>
   );

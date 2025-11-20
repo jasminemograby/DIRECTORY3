@@ -20,7 +20,10 @@ class RequestController {
   async submitRequest(req, res, next) {
     try {
       const { id: companyId, employeeId } = req.params;
-      const { request_type, title, description } = req.body;
+      
+      // Handle envelope structure from frontend API interceptor
+      const requestData = req.body.payload || req.body;
+      const { request_type, title, description } = requestData;
 
       if (!request_type || !title) {
         return res.status(400).json({

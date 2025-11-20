@@ -5,22 +5,39 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getEmployeeCourses } from '../services/employeeService';
 
-function ProfileCourses({ employeeId }) {
-  const { user } = useAuth();
+function ProfileCourses({ employeeId, user }) {
+  const { user: authUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [coursesData, setCoursesData] = useState(null);
+  const [taughtCourses, setTaughtCourses] = useState([]);
+  
+  // Determine if user is a trainer
+  const isTrainer = user?.is_trainer || (user?.roles && Array.isArray(user.roles) && user.roles.includes('TRAINER'));
 
   useEffect(() => {
     const fetchCourses = async () => {
-      if (!user?.companyId || !employeeId) return;
+      const currentUser = user || authUser;
+      if (!currentUser?.companyId || !employeeId) return;
 
       try {
         setLoading(true);
         setError(null);
-        const response = await getEmployeeCourses(user.companyId, employeeId);
+        const response = await getEmployeeCourses(currentUser.companyId, employeeId);
         const courses = response?.courses || response?.response?.courses || response;
         setCoursesData(courses);
+        
+        // Fetch taught courses if user is a trainer
+        if (isTrainer) {
+          try {
+            const { getCoursesTaught } = await import('../services/trainerService');
+            const taught = await getCoursesTaught(employeeId);
+            setTaughtCourses(taught || []);
+          } catch (err) {
+            console.warn('[ProfileCourses] Error fetching taught courses:', err);
+            setTaughtCourses([]);
+          }
+        }
       } catch (err) {
         console.error('[ProfileCourses] Error fetching courses:', err);
         if (err.response?.status === 403) {
@@ -39,7 +56,7 @@ function ProfileCourses({ employeeId }) {
     };
 
     fetchCourses();
-  }, [employeeId, user?.companyId]);
+  }, [employeeId, user?.companyId, authUser?.companyId, isTrainer]);
 
   if (loading) {
     return (
@@ -91,6 +108,45 @@ function ProfileCourses({ employeeId }) {
         borderColor: 'var(--border-default)'
       }}>
         <div className="space-y-4">
+          {/* Taught Courses - Only for trainers */}
+          {isTrainer && (
+            <div>
+              <h3 className="text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+                Taught Courses ({taughtCourses.length})
+              </h3>
+              {taughtCourses.length > 0 ? (
+                <div className="space-y-2">
+                  {taughtCourses.map((course, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3 rounded border cursor-pointer hover:opacity-80 transition-opacity"
+                      style={{
+                        background: 'var(--bg-primary)',
+                        borderColor: 'var(--border-default)'
+                      }}
+                      onClick={() => {
+                        alert('Redirecting to COURSE BUILDER');
+                      }}
+                    >
+                      <div className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
+                        {course.course_name || course.name || `Course ${idx + 1}`}
+                      </div>
+                      {course.course_id && (
+                        <div className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+                          ID: {course.course_id}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                  No courses taught yet.
+                </p>
+              )}
+            </div>
+          )}
+          
           {/* Assigned Courses */}
           <div>
             <h3 className="text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>

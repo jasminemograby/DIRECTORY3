@@ -162,7 +162,7 @@ function LearningPath({ employeeId }) {
           </div>
         ) : (
           <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
-            No courses assigned to your learning path yet.
+            No learning path yet.
           </p>
         )}
 

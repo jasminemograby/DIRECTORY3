@@ -24,7 +24,8 @@ function ProfileRequests({ employeeId }) {
         setLoading(true);
         setError(null);
         const response = await getEmployeeRequests(user.companyId, employeeId);
-        const requestsData = response?.requests || response?.response?.requests || [];
+        // Handle different response formats
+        const requestsData = response?.data?.requests || response?.requests || response?.response?.requests || [];
         setRequests(requestsData);
       } catch (err) {
         console.error('[ProfileRequests] Error fetching requests:', err);
@@ -65,7 +66,8 @@ function ProfileRequests({ employeeId }) {
 
       // Refresh requests list
       const requestsResponse = await getEmployeeRequests(user.companyId, employeeId);
-      setRequests(requestsResponse?.requests || requestsResponse?.response?.requests || []);
+      const refreshedRequests = requestsResponse?.data?.requests || requestsResponse?.requests || requestsResponse?.response?.requests || [];
+      setRequests(refreshedRequests);
     } catch (err) {
       console.error('[ProfileRequests] Error submitting request:', err);
       const errorMessage = err.response?.data?.error || err.message || 'Failed to submit request';

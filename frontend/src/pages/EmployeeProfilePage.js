@@ -6,7 +6,6 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getEmployee } from '../services/employeeService';
 import TrainerSettings from '../components/TrainerSettings';
-import TrainerCoursesTaught from '../components/TrainerCoursesTaught';
 import ApprovedProfileTabs from '../components/ApprovedProfileTabs';
 import LearningPathApprovals from '../components/LearningPathApprovals';
 import ProfileEditForm from '../components/ProfileEditForm';
@@ -323,12 +322,21 @@ function EmployeeProfilePage() {
                 Professional Links
               </h2>
               <div className="flex gap-4">
-                {employee.linkedin_url && employee.linkedin_url !== 'undefined' && (
+                {employee.linkedin_url && employee.linkedin_url !== 'undefined' && !employee.linkedin_url.includes('404') && (
                   <a
                     href={employee.linkedin_url.startsWith('http') ? employee.linkedin_url : `https://${employee.linkedin_url}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-teal-600 hover:text-teal-700 underline"
+                    onClick={(e) => {
+                      // Validate URL before opening
+                      const url = employee.linkedin_url.startsWith('http') ? employee.linkedin_url : `https://${employee.linkedin_url}`;
+                      // Check if URL looks like a valid LinkedIn profile URL
+                      if (!url.includes('linkedin.com/in/') || url.includes('undefined') || url.includes('404')) {
+                        e.preventDefault();
+                        alert('LinkedIn profile URL is not available. Please update your profile with a valid LinkedIn URL.');
+                      }
+                    }}
                   >
                     LinkedIn Profile
                   </a>
@@ -609,15 +617,8 @@ function EmployeeProfilePage() {
               borderColor: 'var(--border-default)'
             }}
           >
-            <h2 
-              className="text-2xl font-semibold mb-6"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              Trainer Profile
-            </h2>
-
             {/* Trainer Settings */}
-            <div className="mb-8">
+            <div>
               <h3 
                 className="text-xl font-semibold mb-4"
                 style={{ color: 'var(--text-primary)' }}
@@ -631,17 +632,6 @@ function EmployeeProfilePage() {
                   setEmployee({ ...employee, trainer_settings: settings });
                 }}
               />
-            </div>
-
-            {/* Courses Taught */}
-            <div>
-              <h3 
-                className="text-xl font-semibold mb-4"
-                style={{ color: 'var(--text-primary)' }}
-              >
-                Courses Taught
-              </h3>
-              <TrainerCoursesTaught employeeId={employeeId} />
             </div>
           </div>
         )}
