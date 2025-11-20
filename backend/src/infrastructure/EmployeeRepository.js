@@ -635,6 +635,19 @@ class EmployeeRepository {
       RETURNING *
     `;
     const queryRunner = client || this.pool;
+    
+    // Validate queryRunner has query method
+    if (!queryRunner || typeof queryRunner.query !== 'function') {
+      console.error('[EmployeeRepository] ❌ Invalid queryRunner:', {
+        hasQueryRunner: !!queryRunner,
+        queryRunnerType: typeof queryRunner,
+        hasQueryMethod: queryRunner ? typeof queryRunner.query : 'N/A',
+        poolType: typeof this.pool,
+        poolHasQuery: this.pool ? typeof this.pool.query : 'N/A'
+      });
+      throw new Error('Database query runner is not properly initialized. queryRunner.query is not a function.');
+    }
+    
     const result = await queryRunner.query(query, [
       githubUrl,
       JSON.stringify(githubData),
@@ -652,8 +665,21 @@ class EmployeeRepository {
    * @param {Object} client - Optional database client
    * @returns {Promise<Object>} Updated employee
    */
-  async updateEnrichment(employeeId, bio, projectSummaries, markAsCompleted = true, client = null) {
+  async updateEnrichment(employeeId, bio, projectSummaries, valueProposition = null, markAsCompleted = true, client = null) {
     const queryRunner = client || this.pool;
+    
+    // Validate queryRunner has query method
+    if (!queryRunner || typeof queryRunner.query !== 'function') {
+      console.error('[EmployeeRepository] ❌ Invalid queryRunner in updateEnrichment:', {
+        hasQueryRunner: !!queryRunner,
+        queryRunnerType: typeof queryRunner,
+        hasQueryMethod: queryRunner ? typeof queryRunner.query : 'N/A',
+        poolType: typeof this.pool,
+        poolHasQuery: this.pool ? typeof this.pool.query : 'N/A',
+        clientProvided: !!client
+      });
+      throw new Error('Database query runner is not properly initialized. queryRunner.query is not a function.');
+    }
     
     // Start transaction if using client
     const needsTransaction = !client;
@@ -662,12 +688,13 @@ class EmployeeRepository {
     }
 
     try {
-      // Update employee bio, enrichment flags, and profile status
+      // Update employee bio, value proposition, enrichment flags, and profile status
       // State transition: basic/enrichment_pending -> enriched
       // Only mark as completed if Gemini succeeded (markAsCompleted = true)
       const updateQuery = markAsCompleted ? `
         UPDATE employees
         SET bio = $1,
+            value_proposition = $3,
             enrichment_completed = TRUE,
             enrichment_completed_at = CURRENT_TIMESTAMP,
             profile_status = 'enriched',
@@ -677,12 +704,13 @@ class EmployeeRepository {
       ` : `
         UPDATE employees
         SET bio = $1,
+            value_proposition = $3,
             profile_status = 'enriched',
             updated_at = CURRENT_TIMESTAMP
         WHERE id = $2
         RETURNING *
       `;
-      const updateResult = await queryRunner.query(updateQuery, [bio, employeeId]);
+      const updateResult = await queryRunner.query(updateQuery, [bio, employeeId, valueProposition]);
       const updatedEmployee = updateResult.rows[0];
       
       if (!markAsCompleted) {
