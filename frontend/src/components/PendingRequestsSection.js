@@ -34,21 +34,55 @@ function PendingRequestsSection({ companyId }) {
     };
 
     fetchRequests();
-    
-    // Refresh every 5 seconds to catch new requests
-    const interval = setInterval(fetchRequests, 5000);
-    
-    return () => clearInterval(interval);
   }, [companyId]);
 
-  const handleApprove = (requestId) => {
+  const handleApprove = async (requestId) => {
     console.log('Approve request:', requestId);
-    // TODO: Implement approval logic
+    // TODO: Implement approval logic via API
+    // After approval, refresh the requests list
+    const fetchRequests = async () => {
+      if (!companyId) return;
+      try {
+        const response = await getCompanyRequests(companyId, 'pending');
+        const requestsData = response?.requests || response?.data?.requests || response?.response?.requests || [];
+        setRequests(requestsData);
+      } catch (err) {
+        console.error('[PendingRequestsSection] Error refreshing requests:', err);
+      }
+    };
+    await fetchRequests();
   };
 
-  const handleReject = (requestId) => {
+  const handleReject = async (requestId) => {
     console.log('Reject request:', requestId);
-    // TODO: Implement rejection logic
+    // TODO: Implement rejection logic via API
+    // After rejection, refresh the requests list
+    const fetchRequests = async () => {
+      if (!companyId) return;
+      try {
+        const response = await getCompanyRequests(companyId, 'pending');
+        const requestsData = response?.requests || response?.data?.requests || response?.response?.requests || [];
+        setRequests(requestsData);
+      } catch (err) {
+        console.error('[PendingRequestsSection] Error refreshing requests:', err);
+      }
+    };
+    await fetchRequests();
+  };
+  
+  const handleRefresh = async () => {
+    if (!companyId) return;
+    try {
+      setLoading(true);
+      const response = await getCompanyRequests(companyId, 'pending');
+      const requestsData = response?.requests || response?.data?.requests || response?.response?.requests || [];
+      setRequests(requestsData);
+    } catch (err) {
+      console.error('[PendingRequestsSection] Error refreshing requests:', err);
+      setError('Failed to refresh requests.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getRequestTypeLabel = (type) => {
