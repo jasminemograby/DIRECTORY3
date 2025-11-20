@@ -91,6 +91,19 @@ class GitHubAPIClient {
   }
 
   /**
+   * Sanitize text to avoid unsupported Unicode escape sequences in JSON
+   * Replaces any "\u" not followed by 4 hex digits with "\\u"
+   * @param {string|null|undefined} text
+   * @returns {string|null}
+   */
+  sanitizeTextForJson(text) {
+    if (!text || typeof text !== 'string') {
+      return text || null;
+    }
+    return text.replace(/\\u(?![0-9a-fA-F]{4})/g, '\\\\u');
+  }
+
+  /**
    * Fetch README content for a repository
    * @param {string} accessToken - GitHub access token
    * @param {string} owner - Repository owner
@@ -108,7 +121,8 @@ class GitHubAPIClient {
         timeout: 10000
       });
       // Return first 5000 characters to avoid storing too much data
-      return response.data.substring(0, 5000);
+      const truncated = response.data.substring(0, 5000);
+      return this.sanitizeTextForJson(truncated);
     } catch (error) {
       // README might not exist or might not be accessible
       if (error.response?.status === 404) {
@@ -162,7 +176,7 @@ class GitHubAPIClient {
 
       // Extract sample commit messages (first 5)
       const commitMessages = commits.slice(0, 5).map(c => ({
-        message: c.commit.message.split('\n')[0].substring(0, 100), // First line, max 100 chars
+        message: this.sanitizeTextForJson(c.commit.message.split('\n')[0].substring(0, 100)), // First line, max 100 chars
         date: c.commit.author.date
       }));
 
