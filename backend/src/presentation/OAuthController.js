@@ -57,6 +57,9 @@ class OAuthController {
    */
   async handleLinkedInCallback(req, res, next) {
     try {
+      console.log('[OAuthController] ========== LINKEDIN CALLBACK RECEIVED ==========');
+      console.log('[OAuthController] Query params:', JSON.stringify(req.query));
+      
       const { code, state, error } = req.query;
 
       // Check for OAuth errors
@@ -272,6 +275,9 @@ class OAuthController {
    */
   async handleGitHubCallback(req, res, next) {
     try {
+      console.log('[OAuthController] ========== GITHUB CALLBACK RECEIVED ==========');
+      console.log('[OAuthController] Query params:', JSON.stringify(req.query));
+      
       const { code, state, error } = req.query;
 
       // Check for OAuth errors

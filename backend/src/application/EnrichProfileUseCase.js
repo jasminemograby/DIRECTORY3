@@ -193,12 +193,28 @@ class EnrichProfileUseCase {
    * @returns {Promise<boolean>} True if ready for enrichment
    */
   async isReadyForEnrichment(employeeId) {
+    console.log('[EnrichProfileUseCase] Checking if ready for enrichment...');
+    console.log('[EnrichProfileUseCase] Employee ID:', employeeId);
+    
     const employee = await this.employeeRepository.findById(employeeId);
     if (!employee) {
+      console.log('[EnrichProfileUseCase] ❌ Employee not found');
       return false;
     }
 
-    return !!(employee.linkedin_data && employee.github_data && !employee.enrichment_completed);
+    const hasLinkedIn = !!employee.linkedin_data;
+    const hasGitHub = !!employee.github_data;
+    const notCompleted = !employee.enrichment_completed;
+    
+    console.log('[EnrichProfileUseCase] Employee:', employee.email);
+    console.log('[EnrichProfileUseCase] Has LinkedIn data:', hasLinkedIn);
+    console.log('[EnrichProfileUseCase] Has GitHub data:', hasGitHub);
+    console.log('[EnrichProfileUseCase] Enrichment not completed:', notCompleted);
+    
+    const isReady = !!(hasLinkedIn && hasGitHub && notCompleted);
+    console.log('[EnrichProfileUseCase] Ready for enrichment:', isReady);
+    
+    return isReady;
   }
 }
 
