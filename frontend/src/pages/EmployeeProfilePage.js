@@ -7,11 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { getEmployee } from '../services/employeeService';
 import TrainerSettings from '../components/TrainerSettings';
 import TrainerCoursesTaught from '../components/TrainerCoursesTaught';
-import ProfileSkills from '../components/ProfileSkills';
-import ProfileCourses from '../components/ProfileCourses';
-import ProfileDashboard from '../components/ProfileDashboard';
-import ProfileRequests from '../components/ProfileRequests';
-import LearningPath from '../components/LearningPath';
+import ApprovedProfileTabs from '../components/ApprovedProfileTabs';
 import LearningPathApprovals from '../components/LearningPathApprovals';
 import ProfileEditForm from '../components/ProfileEditForm';
 
@@ -570,20 +566,11 @@ function EmployeeProfilePage() {
               Learning & Development
             </h2>
 
-            {/* Skills Section */}
-            <ProfileSkills employeeId={employeeId} />
-
-            {/* Courses Section */}
-            <ProfileCourses employeeId={employeeId} />
-
-            {/* Learning Path Section */}
-            <LearningPath employeeId={employeeId} />
-
-            {/* Dashboard Section */}
-            <ProfileDashboard employeeId={employeeId} />
-
-            {/* Requests Section */}
-            <ProfileRequests employeeId={employeeId} />
+            {/* Tabs for organizing sections */}
+            <ApprovedProfileTabs 
+              employeeId={employeeId}
+              user={user}
+            />
           </div>
         )}
 

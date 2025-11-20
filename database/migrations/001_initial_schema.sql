@@ -205,3 +205,6 @@ CREATE INDEX IF NOT EXISTS idx_employee_requests_employee ON employee_requests(e
 CREATE INDEX IF NOT EXISTS idx_employee_requests_company_status ON employee_requests(company_id, status);
 CREATE INDEX IF NOT EXISTS idx_employee_requests_type ON employee_requests(request_type);
 
+-- Add value_proposition column to employees table (AI-generated career progression text)
+ALTER TABLE employees ADD COLUMN IF NOT EXISTS value_proposition TEXT;
+

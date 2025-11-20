@@ -469,7 +469,15 @@ class EmployeeRepository {
    * @returns {Promise<Object>} Updated employee
    */
   async updateProfileStatus(employeeId, status, client = null) {
+    // Defensive check: ensure we have a valid database client
     const queryRunner = client || this.pool;
+    
+    if (!queryRunner || typeof queryRunner.query !== 'function') {
+      console.error('[EmployeeRepository] ⚠️  Invalid database client provided to updateProfileStatus');
+      console.error('[EmployeeRepository] queryRunner type:', typeof queryRunner);
+      console.error('[EmployeeRepository] this.pool type:', typeof this.pool);
+      throw new Error('Database client is not properly initialized');
+    }
     
     // Validate status
     const validStatuses = ['basic', 'enrichment_pending', 'enriched', 'approved', 'rejected'];

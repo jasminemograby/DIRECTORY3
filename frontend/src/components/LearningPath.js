@@ -43,9 +43,11 @@ function LearningPath({ employeeId }) {
   }, [employeeId, user?.companyId]);
 
   const handleViewFullLearningPath = () => {
-    // TODO: Redirect to Learner AI microservice frontend when available
-    const learnerAIUrl = process.env.REACT_APP_LEARNER_AI_URL || 'https://learner-ai-backend-production.up.railway.app';
-    window.open(`${learnerAIUrl}/learning-path?employee_id=${employeeId}`, '_blank');
+    // Redirect to Learner AI microservice frontend
+    alert('Redirecting to LEARNER AI');
+    // TODO: When Learner AI frontend is available, redirect to it
+    // const learnerAIUrl = process.env.REACT_APP_LEARNER_AI_URL || 'https://learner-ai-backend-production.up.railway.app';
+    // window.open(`${learnerAIUrl}/learning-path?employee_id=${employeeId}`, '_blank');
   };
 
   if (loading) {

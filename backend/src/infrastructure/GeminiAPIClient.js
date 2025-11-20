@@ -37,7 +37,21 @@ class GeminiAPIClient {
     }
 
     const prompt = this.buildBioPrompt(linkedinData, githubData, employeeBasicInfo);
-    console.log('[GeminiAPIClient] Prompt built, length:', prompt.length, 'characters');
+    const requestBody = {
+      contents: [{
+        parts: [{
+          text: prompt
+        }]
+      }]
+    };
+    
+    console.log('[GeminiAPIClient] ========== FULL REQUEST DETAILS ==========');
+    console.log('[GeminiAPIClient] Prompt length:', prompt.length, 'characters');
+    console.log('[GeminiAPIClient] Request body size:', JSON.stringify(requestBody).length, 'bytes');
+    console.log('[GeminiAPIClient] LinkedIn data fields present:', linkedinData ? Object.keys(linkedinData).join(', ') : 'NONE');
+    console.log('[GeminiAPIClient] GitHub data fields present:', githubData ? Object.keys(githubData).join(', ') : 'NONE');
+    if (linkedinData?.positions) console.log('[GeminiAPIClient] LinkedIn positions count:', linkedinData.positions.length);
+    if (githubData?.repositories) console.log('[GeminiAPIClient] GitHub repositories count:', githubData.repositories.length);
 
     // Retry logic for rate limits (max 3 attempts with exponential backoff)
     const maxRetries = 3;
@@ -50,22 +64,19 @@ class GeminiAPIClient {
         const apiUrl = `${this.baseUrl}/models/${model}:generateContent?key=${this.apiKey}`;
         
         if (attempt === 0) {
-          console.log('[GeminiAPIClient] Making API call to Gemini (attempt 1)...');
+          console.log('[GeminiAPIClient] ========== API REQUEST ==========');
+          console.log('[GeminiAPIClient] Method: POST');
+          console.log('[GeminiAPIClient] URL:', apiUrl.replace(this.apiKey, 'API_KEY_HIDDEN'));
           console.log('[GeminiAPIClient] Model:', model);
-          console.log('[GeminiAPIClient] Base URL:', this.baseUrl);
+          console.log('[GeminiAPIClient] Headers: { "Content-Type": "application/json" }');
+          console.log('[GeminiAPIClient] Request body length:', JSON.stringify(requestBody).length, 'bytes');
         } else {
           console.log(`[GeminiAPIClient] Retrying API call (attempt ${attempt + 1}/${maxRetries})...`);
         }
         
         const response = await axios.post(
           apiUrl,
-          {
-            contents: [{
-              parts: [{
-                text: prompt
-              }]
-            }]
-          },
+          requestBody,
           {
             headers: {
               'Content-Type': 'application/json'
@@ -74,10 +85,12 @@ class GeminiAPIClient {
           }
         );
 
-        console.log('[GeminiAPIClient] ✅ API call successful');
-        console.log('[GeminiAPIClient] Response status:', response.status);
+        console.log('[GeminiAPIClient] ========== API RESPONSE ==========');
+        console.log('[GeminiAPIClient] Status:', response.status, response.statusText);
+        console.log('[GeminiAPIClient] Response headers:', JSON.stringify(response.headers, null, 2));
         console.log('[GeminiAPIClient] Response has candidates:', !!response.data?.candidates);
         console.log('[GeminiAPIClient] Number of candidates:', response.data?.candidates?.length || 0);
+        console.log('[GeminiAPIClient] Full response data:', JSON.stringify(response.data, null, 2));
 
         const bio = response.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
         if (!bio) {
@@ -87,6 +100,7 @@ class GeminiAPIClient {
         }
 
         console.log('[GeminiAPIClient] ✅ Bio extracted, length:', bio.length, 'characters');
+        console.log('[GeminiAPIClient] Bio preview (first 200 chars):', bio.substring(0, 200));
         if (attempt > 0) {
           console.log(`[GeminiAPIClient] ✅ Bio generated successfully after ${attempt} retry(ies)`);
         } else {
@@ -99,14 +113,21 @@ class GeminiAPIClient {
         const statusCode = error.response?.status;
         const errorMessage = errorData?.error?.message || error.message;
         
-        console.error(`[GeminiAPIClient] ❌ API call failed (attempt ${attempt + 1}/${maxRetries}):`);
+        console.error('[GeminiAPIClient] ========== API ERROR ==========');
+        console.error(`[GeminiAPIClient] Attempt: ${attempt + 1}/${maxRetries}`);
         console.error('[GeminiAPIClient] Status code:', statusCode);
         console.error('[GeminiAPIClient] Error message:', errorMessage);
-        console.error('[GeminiAPIClient] Error data:', JSON.stringify(errorData, null, 2));
+        console.error('[GeminiAPIClient] Full error data:', JSON.stringify(errorData, null, 2));
         if (error.response) {
           console.error('[GeminiAPIClient] Response headers:', JSON.stringify(error.response.headers, null, 2));
         }
         if (error.request) {
+          console.error('[GeminiAPIClient] Request config:', JSON.stringify({
+            url: error.config?.url?.replace(this.apiKey, 'API_KEY_HIDDEN'),
+            method: error.config?.method,
+            headers: error.config?.headers,
+            dataLength: error.config?.data ? JSON.stringify(error.config.data).length : 0
+          }, null, 2));
           console.error('[GeminiAPIClient] Request made but no response received');
         }
         
@@ -115,6 +136,13 @@ class GeminiAPIClient {
                            errorMessage?.toLowerCase().includes('rate limit') ||
                            errorMessage?.toLowerCase().includes('quota') ||
                            errorMessage?.toLowerCase().includes('resource exhausted');
+        
+        if (isRateLimit) {
+          console.error('[GeminiAPIClient] ⚠️  RATE LIMIT DETECTED');
+          console.error('[GeminiAPIClient] Model used: gemini-1.5-flash');
+          console.error('[GeminiAPIClient] API Key plan: Check GEMINI_API_KEY in Railway (free tier has 25 RPM, 250K TPM limits)');
+          console.error('[GeminiAPIClient] Request size:', JSON.stringify(requestBody).length, 'bytes');
+        }
         
         if (isRateLimit && attempt < maxRetries - 1) {
           // Exponential backoff: 2^attempt seconds (2s, 4s, 8s)
@@ -159,10 +187,20 @@ class GeminiAPIClient {
     }
     
     const prompt = this.buildProjectSummariesPrompt(repositories);
+    const requestBody = {
+      contents: [{
+        parts: [{
+          text: prompt
+        }]
+      }]
+    };
     
+    console.log('[GeminiAPIClient] ========== FULL REQUEST DETAILS ==========');
     console.log('[GeminiAPIClient] Generating project summaries for', repositories.length, 'repositories');
     console.log('[GeminiAPIClient] Prompt length:', prompt.length, 'characters');
-    console.log('[GeminiAPIClient] Repository names:', repositories.slice(0, 5).map(r => r.name).join(', '));
+    console.log('[GeminiAPIClient] Request body size:', JSON.stringify(requestBody).length, 'bytes');
+    console.log('[GeminiAPIClient] Repository names:', repositories.slice(0, 10).map(r => r.name).join(', '));
+    console.log('[GeminiAPIClient] Repository fields per repo:', repositories.length > 0 ? Object.keys(repositories[0]).join(', ') : 'NONE');
 
     // Retry logic for rate limits (max 3 attempts with exponential backoff)
     const maxRetries = 3;
@@ -172,19 +210,22 @@ class GeminiAPIClient {
       try {
         // Use gemini-1.5-flash for faster responses (free tier compatible)
         const model = 'gemini-1.5-flash';
+        const apiUrl = `${this.baseUrl}/models/${model}:generateContent?key=${this.apiKey}`;
+        
         if (attempt === 0) {
-          console.log('[GeminiAPIClient] Calling Gemini API with model:', model);
+          console.log('[GeminiAPIClient] ========== API REQUEST ==========');
+          console.log('[GeminiAPIClient] Method: POST');
+          console.log('[GeminiAPIClient] URL:', apiUrl.replace(this.apiKey, 'API_KEY_HIDDEN'));
+          console.log('[GeminiAPIClient] Model:', model);
+          console.log('[GeminiAPIClient] Headers: { "Content-Type": "application/json" }');
+          console.log('[GeminiAPIClient] Request body length:', JSON.stringify(requestBody).length, 'bytes');
+        } else {
+          console.log(`[GeminiAPIClient] Retrying API call (attempt ${attempt + 1}/${maxRetries})...`);
         }
         
         const response = await axios.post(
-          `${this.baseUrl}/models/${model}:generateContent?key=${this.apiKey}`,
-          {
-            contents: [{
-              parts: [{
-                text: prompt
-              }]
-            }]
-          },
+          apiUrl,
+          requestBody,
           {
             headers: {
               'Content-Type': 'application/json'
@@ -193,17 +234,19 @@ class GeminiAPIClient {
           }
         );
 
+        console.log('[GeminiAPIClient] ========== API RESPONSE ==========');
+        console.log('[GeminiAPIClient] Status:', response.status, response.statusText);
+        console.log('[GeminiAPIClient] Full response data:', JSON.stringify(response.data, null, 2));
+
         const summariesText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
         if (!summariesText) {
-          console.error('[GeminiAPIClient] No summaries in response:', response.data);
+          console.error('[GeminiAPIClient] ❌ No summaries in response');
+          console.error('[GeminiAPIClient] Response data:', JSON.stringify(response.data, null, 2));
           throw new Error('No project summaries generated from Gemini API');
         }
 
-        if (attempt > 0) {
-          console.log(`[GeminiAPIClient] ✅ Summaries received after ${attempt} retry(ies), length:`, summariesText.length);
-        } else {
-          console.log('[GeminiAPIClient] ✅ Summaries received, length:', summariesText.length);
-        }
+        console.log('[GeminiAPIClient] ✅ Summaries received, length:', summariesText.length, 'characters');
+        console.log('[GeminiAPIClient] Summaries preview (first 500 chars):', summariesText.substring(0, 500));
         
         // Parse the response (expecting JSON array)
         const summaries = this.parseProjectSummaries(summariesText, repositories);
@@ -230,10 +273,18 @@ class GeminiAPIClient {
         }
         
         // If not rate limit or last attempt, log and throw
-        console.error(`[GeminiAPIClient] ❌ Error generating project summaries (attempt ${attempt + 1}/${maxRetries}):`);
-        console.error('[GeminiAPIClient] Status:', statusCode);
-        console.error('[GeminiAPIClient] Error data:', JSON.stringify(errorData, null, 2));
+        console.error('[GeminiAPIClient] ========== API ERROR ==========');
+        console.error(`[GeminiAPIClient] Attempt: ${attempt + 1}/${maxRetries}`);
+        console.error('[GeminiAPIClient] Status code:', statusCode);
         console.error('[GeminiAPIClient] Error message:', errorMessage);
+        console.error('[GeminiAPIClient] Full error data:', JSON.stringify(errorData, null, 2));
+        
+        if (isRateLimit) {
+          console.error('[GeminiAPIClient] ⚠️  RATE LIMIT DETECTED');
+          console.error('[GeminiAPIClient] Model used: gemini-1.5-flash');
+          console.error('[GeminiAPIClient] API Key plan: Check GEMINI_API_KEY in Railway (free tier has 25 RPM, 250K TPM limits)');
+          console.error('[GeminiAPIClient] Request size:', JSON.stringify(requestBody).length, 'bytes');
+        }
         
         if (attempt === maxRetries - 1) {
           throw new Error(`Failed to generate project summaries after ${maxRetries} attempts: ${errorMessage}`);
@@ -267,6 +318,7 @@ class GeminiAPIClient {
     
     // DATA SOURCES: LinkedIn information
     if (linkedinData) {
+      console.log('[GeminiAPIClient] LinkedIn data fields available:', Object.keys(linkedinData).join(', '));
       prompt += `LINKEDIN PROFILE DATA:\n`;
       if (linkedinData.name) prompt += `- Full Name: ${linkedinData.name}\n`;
       if (linkedinData.given_name) prompt += `- First Name: ${linkedinData.given_name}\n`;
@@ -275,20 +327,27 @@ class GeminiAPIClient {
       if (linkedinData.locale) prompt += `- Location: ${linkedinData.locale}\n`;
       if (linkedinData.headline) prompt += `- Professional Headline: ${linkedinData.headline}\n`;
       if (linkedinData.summary) prompt += `- Professional Summary: ${linkedinData.summary}\n`;
-      if (linkedinData.positions && linkedinData.positions.length > 0) {
-        prompt += `- Work Experience (${linkedinData.positions.length} position(s)):\n`;
-        linkedinData.positions.slice(0, 5).forEach((pos, idx) => {
-          prompt += `  ${idx + 1}. ${pos.title || 'Position'} at ${pos.companyName || 'Company'}`;
+      // Check for positions/experience (may be in different field names)
+      const positions = linkedinData.positions || linkedinData.experience || linkedinData.workExperience || [];
+      if (positions && positions.length > 0) {
+        prompt += `- Work Experience (${positions.length} position(s)):\n`;
+        positions.slice(0, 5).forEach((pos, idx) => {
+          prompt += `  ${idx + 1}. ${pos.title || pos.jobTitle || 'Position'} at ${pos.companyName || pos.company || 'Company'}`;
           if (pos.description) prompt += `\n     Description: ${pos.description.substring(0, 200)}`;
-          if (pos.startDate) prompt += `\n     Duration: ${pos.startDate}${pos.endDate ? ` - ${pos.endDate}` : ' (Current)'}`;
+          if (pos.startDate || pos.start_date) prompt += `\n     Duration: ${pos.startDate || pos.start_date}${(pos.endDate || pos.end_date) ? ` - ${pos.endDate || pos.end_date}` : ' (Current)'}`;
           prompt += '\n';
         });
+      } else {
+        console.log('[GeminiAPIClient] ⚠️  No positions/experience found in LinkedIn data');
       }
       prompt += '\n';
+    } else {
+      console.log('[GeminiAPIClient] ⚠️  No LinkedIn data provided');
     }
     
     // DATA SOURCES: GitHub information
     if (githubData) {
+      console.log('[GeminiAPIClient] GitHub data fields available:', Object.keys(githubData).join(', '));
       prompt += `GITHUB PROFILE DATA:\n`;
       if (githubData.name) prompt += `- Name: ${githubData.name}\n`;
       if (githubData.login) prompt += `- Username: ${githubData.login}\n`;
@@ -305,17 +364,22 @@ class GeminiAPIClient {
         const topRepos = githubData.repositories.slice(0, 10);
         prompt += `- Top Repositories (showing technical expertise):\n`;
         topRepos.forEach((repo, idx) => {
-          prompt += `  ${idx + 1}. ${repo.name}`;
+          prompt += `  ${idx + 1}. ${repo.name || repo.full_name || 'Repository'}`;
           if (repo.description) prompt += `\n     Description: ${repo.description}`;
           if (repo.language) prompt += `\n     Primary Language: ${repo.language}`;
-          if (repo.stars) prompt += `\n     Stars: ${repo.stars}`;
-          if (repo.forks) prompt += `\n     Forks: ${repo.forks}`;
-          if (repo.url) prompt += `\n     URL: ${repo.url}`;
-          if (repo.is_fork) prompt += `\n     Note: Forked repository`;
+          if (repo.stars || repo.stargazers_count) prompt += `\n     Stars: ${repo.stars || repo.stargazers_count}`;
+          if (repo.forks || repo.forks_count) prompt += `\n     Forks: ${repo.forks || repo.forks_count}`;
+          if (repo.url || repo.html_url) prompt += `\n     URL: ${repo.url || repo.html_url}`;
+          if (repo.is_fork || repo.fork) prompt += `\n     Note: Forked repository`;
+          if (repo.topics && repo.topics.length > 0) prompt += `\n     Topics: ${repo.topics.join(', ')}`;
           prompt += '\n';
         });
+      } else {
+        console.log('[GeminiAPIClient] ⚠️  No repositories found in GitHub data');
       }
       prompt += '\n';
+    } else {
+      console.log('[GeminiAPIClient] ⚠️  No GitHub data provided');
     }
     
     // TASK: Define what the AI needs to do
@@ -415,6 +479,172 @@ class GeminiAPIClient {
     prompt += `- Example format: [{"repository_name": "project-name", "summary": "Unique professional description specific to this project..."}]\n\n`;
     
     prompt += `Now generate UNIQUE project summaries for each repository listed above:\n`;
+    
+    return prompt;
+  }
+
+  /**
+   * Generate value proposition text about career progression
+   * @param {Object} employeeBasicInfo - Employee info with current_role and target_role
+   * @returns {Promise<string>} Generated value proposition text
+   */
+  async generateValueProposition(employeeBasicInfo) {
+    console.log('[GeminiAPIClient] ========== GENERATING VALUE PROPOSITION ==========');
+    console.log('[GeminiAPIClient] API Key configured:', !!this.apiKey);
+    
+    if (!this.apiKey) {
+      console.error('[GeminiAPIClient] ❌ Gemini API key not configured');
+      throw new Error('Gemini API key not configured');
+    }
+
+    const prompt = this.buildValuePropositionPrompt(employeeBasicInfo);
+    const requestBody = {
+      contents: [{
+        parts: [{
+          text: prompt
+        }]
+      }]
+    };
+    
+    console.log('[GeminiAPIClient] ========== FULL REQUEST DETAILS ==========');
+    console.log('[GeminiAPIClient] Prompt length:', prompt.length, 'characters');
+    console.log('[GeminiAPIClient] Request body size:', JSON.stringify(requestBody).length, 'bytes');
+    console.log('[GeminiAPIClient] Employee basic info:', JSON.stringify(employeeBasicInfo, null, 2));
+
+    // Retry logic for rate limits (max 3 attempts with exponential backoff)
+    const maxRetries = 3;
+    let lastError;
+    
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const model = 'gemini-1.5-flash';
+        const apiUrl = `${this.baseUrl}/models/${model}:generateContent?key=${this.apiKey}`;
+        
+        if (attempt === 0) {
+          console.log('[GeminiAPIClient] ========== API REQUEST ==========');
+          console.log('[GeminiAPIClient] Method: POST');
+          console.log('[GeminiAPIClient] URL:', apiUrl.replace(this.apiKey, 'API_KEY_HIDDEN'));
+          console.log('[GeminiAPIClient] Model:', model);
+          console.log('[GeminiAPIClient] Headers: { "Content-Type": "application/json" }');
+          console.log('[GeminiAPIClient] Request body length:', JSON.stringify(requestBody).length, 'bytes');
+        } else {
+          console.log(`[GeminiAPIClient] Retrying API call (attempt ${attempt + 1}/${maxRetries})...`);
+        }
+        
+        const response = await axios.post(
+          apiUrl,
+          requestBody,
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            timeout: 30000
+          }
+        );
+
+        console.log('[GeminiAPIClient] ========== API RESPONSE ==========');
+        console.log('[GeminiAPIClient] Status:', response.status, response.statusText);
+        console.log('[GeminiAPIClient] Full response data:', JSON.stringify(response.data, null, 2));
+        
+        const valueProposition = response.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        if (!valueProposition) {
+          console.error('[GeminiAPIClient] ❌ No value proposition in response');
+          throw new Error('No value proposition generated from Gemini API');
+        }
+
+        console.log('[GeminiAPIClient] ✅ Value proposition extracted, length:', valueProposition.length, 'characters');
+        console.log('[GeminiAPIClient] Value proposition preview:', valueProposition);
+        if (attempt > 0) {
+          console.log(`[GeminiAPIClient] ✅ Value proposition generated successfully after ${attempt} retry(ies)`);
+        } else {
+          console.log('[GeminiAPIClient] ✅ Value proposition generated successfully on first attempt');
+        }
+        return valueProposition;
+      } catch (error) {
+        lastError = error;
+        const errorData = error.response?.data;
+        const statusCode = error.response?.status;
+        const errorMessage = errorData?.error?.message || error.message;
+        
+        console.error('[GeminiAPIClient] ========== API ERROR ==========');
+        console.error(`[GeminiAPIClient] Attempt: ${attempt + 1}/${maxRetries}`);
+        console.error('[GeminiAPIClient] Status code:', statusCode);
+        console.error('[GeminiAPIClient] Error message:', errorMessage);
+        console.error('[GeminiAPIClient] Full error data:', JSON.stringify(errorData, null, 2));
+        
+        // Check if it's a rate limit error (429) or quota exceeded
+        const isRateLimit = statusCode === 429 || 
+                           errorMessage?.toLowerCase().includes('rate limit') ||
+                           errorMessage?.toLowerCase().includes('quota') ||
+                           errorMessage?.toLowerCase().includes('resource exhausted');
+        
+        if (isRateLimit) {
+          console.error('[GeminiAPIClient] ⚠️  RATE LIMIT DETECTED');
+          console.error('[GeminiAPIClient] Model used: gemini-1.5-flash');
+          console.error('[GeminiAPIClient] API Key plan: Check GEMINI_API_KEY in Railway (free tier has 25 RPM, 250K TPM limits)');
+          console.error('[GeminiAPIClient] Request size:', JSON.stringify(requestBody).length, 'bytes');
+        }
+        
+        if (isRateLimit && attempt < maxRetries - 1) {
+          // Exponential backoff: 2^attempt seconds (2s, 4s, 8s)
+          const delay = Math.pow(2, attempt) * 1000;
+          console.warn(`[GeminiAPIClient] ⚠️  Rate limit hit (attempt ${attempt + 1}/${maxRetries}), retrying in ${delay/1000}s...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue; // Retry
+        }
+        
+        // If not rate limit or last attempt, throw error
+        if (attempt === maxRetries - 1) {
+          console.error(`[GeminiAPIClient] ❌ All ${maxRetries} attempts failed`);
+          throw new Error(`Failed to generate value proposition after ${maxRetries} attempts: ${errorMessage}`);
+        }
+      }
+    }
+    
+    // Should never reach here, but just in case
+    throw new Error(`Failed to generate value proposition: ${lastError?.message || 'Unknown error'}`);
+  }
+
+  /**
+   * Build prompt for value proposition generation
+   */
+  buildValuePropositionPrompt(employeeBasicInfo) {
+    const name = employeeBasicInfo?.full_name || 'the employee';
+    const currentRole = employeeBasicInfo?.current_role_in_company || 'their current role';
+    const targetRole = employeeBasicInfo?.target_role_in_company || null;
+    
+    let prompt = `You are a professional HR and career development AI assistant specializing in creating value propositions for employee career progression.\n\n`;
+    
+    prompt += `CONTEXT:\n`;
+    prompt += `You are creating a value proposition statement for ${name}.\n`;
+    prompt += `- Current Role: ${currentRole}\n`;
+    if (targetRole && targetRole !== currentRole) {
+      prompt += `- Target Role: ${targetRole}\n`;
+    } else {
+      prompt += `- Target Role: Same as current role (no career progression planned)\n`;
+    }
+    prompt += `\n`;
+    
+    prompt += `TASK:\n`;
+    prompt += `Create a professional, concise value proposition statement that:\n`;
+    prompt += `1. States that ${name} currently works as ${currentRole} in the company\n`;
+    if (targetRole && targetRole !== currentRole) {
+      prompt += `2. States that ${name} will be upgraded to work as ${targetRole}\n`;
+      prompt += `3. Identifies what skills, knowledge, or experience ${name} is missing to reach the target role\n`;
+    } else {
+      prompt += `2. Notes that ${name} is continuing in their current role\n`;
+    }
+    prompt += `4. Is written in a professional, encouraging tone\n`;
+    prompt += `5. Is suitable for display on an employee profile\n\n`;
+    
+    prompt += `OUTPUT REQUIREMENTS:\n`;
+    prompt += `- Length: 2-3 sentences, maximum 150 words\n`;
+    prompt += `- Format: Plain text, no markdown, no code blocks, no bullet points\n`;
+    prompt += `- Tone: Professional, clear, and motivating\n`;
+    prompt += `- Structure: Start with current role, mention target role (if different), then mention what's needed to get there\n`;
+    prompt += `- Example format: "${name} currently works as ${currentRole} in the company. ${name} will be upgraded to work as ${targetRole}. To achieve this transition, ${name} needs to develop [specific skills/knowledge/experience]."\n\n`;
+    
+    prompt += `Now generate a value proposition statement for ${name}:\n`;
     
     return prompt;
   }

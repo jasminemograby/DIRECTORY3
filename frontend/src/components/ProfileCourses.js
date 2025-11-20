@@ -101,10 +101,16 @@ function ProfileCourses({ employeeId }) {
                 {assigned.map((course, idx) => (
                   <div
                     key={idx}
-                    className="p-3 rounded border"
+                    className="p-3 rounded border cursor-pointer hover:opacity-80 transition-opacity"
                     style={{
                       background: 'var(--bg-primary)',
                       borderColor: 'var(--border-default)'
+                    }}
+                    onClick={() => {
+                      alert('Redirecting to COURSE BUILDER');
+                      // TODO: When Course Builder frontend is available, redirect to it
+                      // const courseBuilderUrl = process.env.REACT_APP_COURSE_BUILDER_URL || 'https://coursebuilderfs-production.up.railway.app';
+                      // window.open(`${courseBuilderUrl}/course/${course.course_id}`, '_blank');
                     }}
                   >
                     <div className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
@@ -135,10 +141,16 @@ function ProfileCourses({ employeeId }) {
                 {inProgress.map((course, idx) => (
                   <div
                     key={idx}
-                    className="p-3 rounded border"
+                    className="p-3 rounded border cursor-pointer hover:opacity-80 transition-opacity"
                     style={{
                       background: 'var(--bg-primary)',
                       borderColor: 'var(--border-default)'
+                    }}
+                    onClick={() => {
+                      alert('Redirecting to COURSE BUILDER');
+                      // TODO: When Course Builder frontend is available, redirect to it
+                      // const courseBuilderUrl = process.env.REACT_APP_COURSE_BUILDER_URL || 'https://coursebuilderfs-production.up.railway.app';
+                      // window.open(`${courseBuilderUrl}/course/${course.course_id}`, '_blank');
                     }}
                   >
                     <div className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
@@ -185,10 +197,16 @@ function ProfileCourses({ employeeId }) {
                 {completed.map((course, idx) => (
                   <div
                     key={idx}
-                    className="p-3 rounded border"
+                    className="p-3 rounded border cursor-pointer hover:opacity-80 transition-opacity"
                     style={{
                       background: 'var(--bg-primary)',
                       borderColor: 'var(--border-default)'
+                    }}
+                    onClick={() => {
+                      alert('Redirecting to COURSE BUILDER');
+                      // TODO: When Course Builder frontend is available, redirect to it
+                      // const courseBuilderUrl = process.env.REACT_APP_COURSE_BUILDER_URL || 'https://coursebuilderfs-production.up.railway.app';
+                      // window.open(`${courseBuilderUrl}/course/${course.course_id}`, '_blank');
                     }}
                   >
                     <div className="flex items-center justify-between">
