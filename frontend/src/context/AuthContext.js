@@ -135,9 +135,17 @@ export const AuthProvider = ({ children }) => {
         console.error('[AuthContext] Auth initialization error:', error);
         // During OAuth callback, try to preserve stored user
         const urlParams = new URLSearchParams(window.location.search);
-        const isOAuthCallback = urlParams.get('linkedin') === 'connected' || 
-                                urlParams.get('github') === 'connected' ||
-                                urlParams.get('enriched') === 'true';
+        const linkedinParam = urlParams.get('linkedin');
+        const githubParam = urlParams.get('github');
+        const errorParam = urlParams.get('error');
+        const enrichedParam = urlParams.get('enriched');
+        const tokenParam = urlParams.get('token');
+        
+        const isOAuthCallback = linkedinParam === 'connected' || 
+                                githubParam === 'connected' ||
+                                !!errorParam ||  // OAuth errors are still OAuth callbacks
+                                enrichedParam === 'true' ||
+                                !!tokenParam;    // Token in URL indicates OAuth callback
         if (isOAuthCallback) {
           const storedUser = authService.getCurrentUser();
           const token = authService.getToken();
@@ -168,10 +176,18 @@ export const AuthProvider = ({ children }) => {
     try {
       // Check if we're in an OAuth callback - preserve token during OAuth flow
       const urlParams = new URLSearchParams(window.location.search);
-      const isOAuthCallback = urlParams.get('linkedin') === 'connected' || 
-                              urlParams.get('github') === 'connected' || 
-                              urlParams.get('error') ||
-                              urlParams.get('enriched') === 'true';
+      const linkedinParam = urlParams.get('linkedin');
+      const githubParam = urlParams.get('github');
+      const errorParam = urlParams.get('error');
+      const enrichedParam = urlParams.get('enriched');
+      const tokenParam = urlParams.get('token');
+      
+      // OAuth callback is detected by any of these indicators
+      const isOAuthCallback = linkedinParam === 'connected' || 
+                              githubParam === 'connected' || 
+                              !!errorParam ||  // OAuth errors are still OAuth callbacks
+                              enrichedParam === 'true' ||
+                              !!tokenParam;    // Token in URL indicates OAuth callback
 
       const validation = await authService.validateToken();
       if (validation.valid && validation.user) {
