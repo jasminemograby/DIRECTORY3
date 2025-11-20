@@ -140,13 +140,23 @@ function PendingRequestsSection({ companyId }) {
 
   return (
     <div className="space-y-4">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-          Pending Requests ({requests.length})
-        </h3>
-        <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-          Review and approve employee requests
-        </p>
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+            Pending Requests ({requests.length})
+          </h3>
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            Review and approve employee requests
+          </p>
+        </div>
+        <button
+          onClick={handleRefresh}
+          disabled={loading}
+          className="px-4 py-2 text-sm border rounded hover:bg-opacity-50 transition-colors disabled:opacity-50"
+          style={{ borderColor: 'var(--border-default)', color: 'var(--text-primary)' }}
+        >
+          {loading ? 'Refreshing...' : 'Refresh'}
+        </button>
       </div>
 
       {requests.length === 0 ? (
@@ -155,7 +165,19 @@ function PendingRequestsSection({ companyId }) {
         </div>
       ) : (
         <div className="space-y-4">
-          {requests.map((request) => (
+          {requests.map((request) => {
+            // Handle both old mock format and new database format
+            const requestId = request.id;
+            const requestType = request.request_type || request.type;
+            const employeeName = request.employee_name || request.employee?.name;
+            const employeeEmail = request.employee_email || request.employee?.email;
+            const employeeId = request.employee_id || request.employee?.id;
+            const requestTitle = request.title || request.request;
+            const requestDescription = request.description;
+            const submittedAt = request.requested_at ? new Date(request.requested_at).toLocaleDateString() : request.submittedAt;
+            const priority = request.priority || 'medium';
+            
+            return (
             <div
               key={request.id}
               className="p-4 rounded-lg border"
