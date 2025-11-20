@@ -79,10 +79,16 @@ class GeminiAPIClient {
     }
 
     const prompt = this.buildProjectSummariesPrompt(repositories);
+    
+    console.log('[GeminiAPIClient] Generating project summaries for', repositories.length, 'repositories');
+    console.log('[GeminiAPIClient] Prompt length:', prompt.length, 'characters');
+    console.log('[GeminiAPIClient] Repository names:', repositories.slice(0, 5).map(r => r.name).join(', '));
 
     try {
       // Use gemini-1.5-flash for faster responses (free tier compatible)
       const model = 'gemini-1.5-flash';
+      console.log('[GeminiAPIClient] Calling Gemini API with model:', model);
+      
       const response = await axios.post(
         `${this.baseUrl}/models/${model}:generateContent?key=${this.apiKey}`,
         {
@@ -102,14 +108,21 @@ class GeminiAPIClient {
 
       const summariesText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
       if (!summariesText) {
+        console.error('[GeminiAPIClient] No summaries in response:', response.data);
         throw new Error('No project summaries generated from Gemini API');
       }
 
+      console.log('[GeminiAPIClient] ✅ Summaries received, length:', summariesText.length);
+      
       // Parse the response (expecting JSON array)
       const summaries = this.parseProjectSummaries(summariesText, repositories);
+      console.log('[GeminiAPIClient] ✅ Parsed', summaries.length, 'project summaries');
       return summaries;
     } catch (error) {
-      console.error('[GeminiAPIClient] Error generating project summaries:', error.response?.data || error.message);
+      console.error('[GeminiAPIClient] ❌ Error generating project summaries:');
+      console.error('[GeminiAPIClient] Status:', error.response?.status);
+      console.error('[GeminiAPIClient] Error data:', JSON.stringify(error.response?.data, null, 2));
+      console.error('[GeminiAPIClient] Error message:', error.message);
       throw new Error(`Failed to generate project summaries: ${error.response?.data?.error?.message || error.message}`);
     }
   }
@@ -197,15 +210,38 @@ class GeminiAPIClient {
     
     // REQUIREMENTS: Output specifications
     prompt += `OUTPUT REQUIREMENTS:\n`;
-    prompt += `- Write in third person (e.g., "John is a...", "She has...", "They specialize in...")\n`;
-    prompt += `- Length: 2-3 sentences, maximum 200 words\n`;
+    
+    // Determine correct pronoun based on name or LinkedIn data
+    const firstName = employeeBasicInfo?.full_name?.split(' ')[0] || linkedinData?.given_name || '';
+    // Use he/she based on common name patterns (this is a simple approach - can be improved with gender detection API if needed)
+    let pronoun = 'they';
+    let possessive = 'their';
+    if (firstName) {
+      // Common female name endings/patterns (simplified - can be enhanced)
+      const femalePatterns = ['a', 'ia', 'ella', 'ette', 'ine', 'elle'];
+      const lastName = firstName.toLowerCase();
+      if (femalePatterns.some(pattern => lastName.endsWith(pattern)) || 
+          linkedinData?.gender === 'female' || 
+          (linkedinData?.pronouns && linkedinData.pronouns.includes('she'))) {
+        pronoun = 'she';
+        possessive = 'her';
+      } else if (linkedinData?.gender === 'male' || 
+                 (linkedinData?.pronouns && linkedinData.pronouns.includes('he'))) {
+        pronoun = 'he';
+        possessive = 'his';
+      }
+    }
+    
+    prompt += `- Write in third person using "${pronoun}" and "${possessive}" as the pronoun (e.g., "${name} is a...", "${pronoun.charAt(0).toUpperCase() + pronoun.slice(1)} has...", "${pronoun.charAt(0).toUpperCase() + pronoun.slice(1)} specializes in...")\n`;
+    prompt += `- Length: 3-5 sentences, maximum 250 words\n`;
     prompt += `- Tone: Professional, confident, and engaging\n`;
-    prompt += `- Content: Focus on professional experience, technical expertise, key achievements, and career goals\n`;
-    prompt += `- Style: Use active voice and specific examples when possible\n`;
+    prompt += `- Content: Synthesize information from LinkedIn (professional experience, positions, summary) and GitHub (repositories, languages, contributions) to create a unique, personalized bio\n`;
+    prompt += `- Style: Use active voice, specific achievements, technologies mentioned in repositories, and career progression\n`;
+    prompt += `- Personalization: Make it unique to this person - reference specific technologies, projects, or experiences from their LinkedIn and GitHub data\n`;
     prompt += `- Restrictions: Do NOT include personal contact information, email addresses, URLs, or social media handles\n`;
     prompt += `- Format: Return ONLY the bio text, no markdown, no code blocks, no explanations, no additional formatting\n\n`;
     
-    prompt += `Now generate the professional bio:\n`;
+    prompt += `Now generate a unique, professional bio specifically for ${name}:\n`;
     
     return prompt;
   }
@@ -243,22 +279,24 @@ class GeminiAPIClient {
     
     // TASK: Define what the AI needs to do
     prompt += `TASK:\n`;
-    prompt += `For each repository, create a concise, professional summary that:\n`;
-    prompt += `1. Describes the project's purpose and main functionality\n`;
-    prompt += `2. Highlights key technologies, frameworks, or tools used\n`;
-    prompt += `3. Explains the business value or technical significance\n`;
-    prompt += `4. For forked repositories, notes that it's a contribution to an existing project\n\n`;
+    prompt += `For EACH repository listed above, create a UNIQUE, concise, professional summary that:\n`;
+    prompt += `1. Describes the SPECIFIC project's purpose and main functionality (use the repository description, language, and name to understand what it does)\n`;
+    prompt += `2. Highlights the SPECIFIC technologies, frameworks, or tools used (mention the primary language and any frameworks if evident from the name/description)\n`;
+    prompt += `3. Explains the business value or technical significance of THIS SPECIFIC project\n`;
+    prompt += `4. For forked repositories, notes that it's a contribution to an existing project and what the contribution adds\n`;
+    prompt += `5. Make each summary UNIQUE - do not use generic descriptions. Reference specific details from the repository data above\n\n`;
     
     // OUTPUT REQUIREMENTS: Format specifications
     prompt += `OUTPUT REQUIREMENTS:\n`;
     prompt += `- Return a valid JSON array with objects containing "repository_name" and "summary" fields\n`;
-    prompt += `- Each summary: 1-2 sentences, maximum 150 words\n`;
+    prompt += `- Each summary: 2-3 sentences, maximum 200 words\n`;
     prompt += `- Tone: Professional, technical, and suitable for a work profile\n`;
-    prompt += `- Content: Focus on what the project does, why it matters, and key technologies\n`;
+    prompt += `- Content: Focus on what THIS SPECIFIC project does, why it matters, and key technologies used\n`;
+    prompt += `- Uniqueness: Each summary must be different - reference the repository name, description, language, and other specific details\n`;
     prompt += `- Format: Valid JSON only, no markdown code blocks, no explanations, no additional text\n`;
-    prompt += `- Example format: [{"repository_name": "project-name", "summary": "Brief professional description..."}]\n\n`;
+    prompt += `- Example format: [{"repository_name": "project-name", "summary": "Unique professional description specific to this project..."}]\n\n`;
     
-    prompt += `Now generate the project summaries:\n`;
+    prompt += `Now generate UNIQUE project summaries for each repository listed above:\n`;
     
     return prompt;
   }

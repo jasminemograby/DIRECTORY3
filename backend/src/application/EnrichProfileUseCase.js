@@ -59,11 +59,18 @@ class EnrichProfileUseCase {
       // Generate bio using Gemini AI (with fallback to mock data)
       let bio;
       try {
+        console.log('[EnrichProfileUseCase] Calling Gemini API to generate bio...');
+        console.log('[EnrichProfileUseCase] Employee:', employeeBasicInfo.full_name);
+        console.log('[EnrichProfileUseCase] LinkedIn data present:', !!linkedinData);
+        console.log('[EnrichProfileUseCase] GitHub data present:', !!githubData);
         bio = await this.geminiClient.generateBio(linkedinData, githubData, employeeBasicInfo);
-        console.log('[EnrichProfileUseCase] ✅ Bio generated successfully');
+        console.log('[EnrichProfileUseCase] ✅ Bio generated successfully by Gemini:', bio.substring(0, 100) + '...');
       } catch (error) {
-        console.warn('[EnrichProfileUseCase] ⚠️  Gemini API failed, using mock bio:', error.message);
+        console.error('[EnrichProfileUseCase] ❌ Gemini API failed:', error.message);
+        console.error('[EnrichProfileUseCase] Error details:', error.response?.data || error.stack);
+        console.warn('[EnrichProfileUseCase] ⚠️  Using mock bio as fallback');
         bio = this.mockDataService.getMockBio(employeeBasicInfo);
+        console.warn('[EnrichProfileUseCase] ⚠️  MOCK BIO USED - This is generic and not personalized!');
       }
 
       // Generate project summaries using Gemini AI (with fallback to mock data)
@@ -72,12 +79,22 @@ class EnrichProfileUseCase {
       
       if (repositories.length > 0) {
         try {
+          console.log('[EnrichProfileUseCase] Calling Gemini API to generate project summaries...');
+          console.log('[EnrichProfileUseCase] Number of repositories:', repositories.length);
           projectSummaries = await this.geminiClient.generateProjectSummaries(repositories);
-          console.log(`[EnrichProfileUseCase] ✅ Generated ${projectSummaries.length} project summaries`);
+          console.log(`[EnrichProfileUseCase] ✅ Generated ${projectSummaries.length} project summaries by Gemini`);
+          if (projectSummaries.length > 0) {
+            console.log('[EnrichProfileUseCase] Sample summary:', projectSummaries[0].summary?.substring(0, 100) + '...');
+          }
         } catch (error) {
-          console.warn('[EnrichProfileUseCase] ⚠️  Gemini API failed, using mock project summaries:', error.message);
+          console.error('[EnrichProfileUseCase] ❌ Gemini API failed for project summaries:', error.message);
+          console.error('[EnrichProfileUseCase] Error details:', error.response?.data || error.stack);
+          console.warn('[EnrichProfileUseCase] ⚠️  Using mock project summaries as fallback');
           projectSummaries = this.mockDataService.getMockProjectSummaries(repositories);
+          console.warn('[EnrichProfileUseCase] ⚠️  MOCK SUMMARIES USED - These are generic and not personalized!');
         }
+      } else {
+        console.log('[EnrichProfileUseCase] No repositories found in GitHub data, skipping project summaries');
       }
 
       // Update employee profile with enriched data (sets profile_status to 'enriched')
