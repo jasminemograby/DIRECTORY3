@@ -27,6 +27,7 @@ class LinkedInAPIClient {
   async getUserProfile(accessToken) {
     try {
       // Use OpenID Connect userinfo endpoint (recommended)
+      // This endpoint returns email if 'email' scope is granted
       const response = await axios.get(this.userInfoUrl, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -35,16 +36,25 @@ class LinkedInAPIClient {
         timeout: 10000
       });
 
-      return {
+      const profileData = {
         id: response.data.sub,
         name: response.data.name,
         given_name: response.data.given_name,
         family_name: response.data.family_name,
-        email: response.data.email,
+        email: response.data.email || null, // Email from userinfo (if 'email' scope granted)
         picture: response.data.picture,
         locale: response.data.locale,
-        email_verified: response.data.email_verified
+        email_verified: response.data.email_verified || false
       };
+
+      // Log if email is present from userinfo endpoint
+      if (profileData.email) {
+        console.log('[LinkedInAPIClient] ✅ Email retrieved from OpenID Connect userinfo endpoint');
+      } else {
+        console.log('[LinkedInAPIClient] ⚠️  Email not in userinfo response (may need separate email endpoint)');
+      }
+
+      return profileData;
     } catch (error) {
       console.error('[LinkedInAPIClient] Error fetching user profile:', error.response?.data || error.message);
       
@@ -86,7 +96,9 @@ class LinkedInAPIClient {
   }
 
   /**
-   * Fetch user email address
+   * Fetch user email address using legacy LinkedIn API v2 endpoint
+   * NOTE: This endpoint requires the 'emailAddress' product to be approved in LinkedIn Developer Portal
+   * If not approved, this will fail with 403. The email from OpenID Connect userinfo should be used instead.
    * @param {string} accessToken - LinkedIn access token
    * @returns {Promise<string|null>} Email address or null
    */
@@ -103,12 +115,23 @@ class LinkedInAPIClient {
       // Extract email from response
       if (response.data?.elements && response.data.elements.length > 0) {
         const emailElement = response.data.elements[0];
-        return emailElement['handle~']?.emailAddress || null;
+        const email = emailElement['handle~']?.emailAddress || null;
+        if (email) {
+          console.log('[LinkedInAPIClient] ✅ Email retrieved from legacy email endpoint');
+        }
+        return email;
       }
       
       return null;
     } catch (error) {
-      console.warn('[LinkedInAPIClient] Could not fetch email:', error.response?.data || error.message);
+      // This is expected if 'emailAddress' product is not approved in LinkedIn Developer Portal
+      // The email should already be available from OpenID Connect userinfo endpoint if 'email' scope is granted
+      if (error.response?.status === 403) {
+        console.warn('[LinkedInAPIClient] ⚠️  Email endpoint requires "emailAddress" product approval in LinkedIn Developer Portal');
+        console.warn('[LinkedInAPIClient] ⚠️  This is OK - email should be available from OpenID Connect userinfo endpoint');
+      } else {
+        console.warn('[LinkedInAPIClient] Could not fetch email from legacy endpoint:', error.response?.data || error.message);
+      }
       return null; // Email is optional, don't fail if we can't get it
     }
   }
@@ -119,10 +142,18 @@ class LinkedInAPIClient {
    * @returns {Promise<Object>} Complete profile data
    */
   async getCompleteProfile(accessToken) {
-    const [profile, email] = await Promise.all([
-      this.getUserProfile(accessToken),
-      this.getUserEmail(accessToken)
-    ]);
+    // First, get profile from OpenID Connect userinfo (includes email if 'email' scope granted)
+    const profile = await this.getUserProfile(accessToken);
+    
+    // Only try legacy email endpoint if email is not already in profile
+    // This avoids unnecessary API calls and 403 errors
+    let email = profile.email;
+    if (!email) {
+      console.log('[LinkedInAPIClient] Email not in userinfo, trying legacy email endpoint...');
+      email = await this.getUserEmail(accessToken);
+    } else {
+      console.log('[LinkedInAPIClient] ✅ Email already available from userinfo, skipping legacy email endpoint');
+    }
 
     // Ensure picture field is properly extracted
     const pictureUrl = profile.picture 
@@ -131,12 +162,20 @@ class LinkedInAPIClient {
       || profile.profilePicture?.url
       || null;
 
-    return {
+    const completeProfile = {
       ...profile,
       picture: pictureUrl, // Normalize to 'picture' field for consistent access
-      email: email || profile.email || null,
+      email: email || null, // Use email from userinfo (preferred) or legacy endpoint (fallback)
       fetched_at: new Date().toISOString()
     };
+
+    if (completeProfile.email) {
+      console.log('[LinkedInAPIClient] ✅ Complete profile fetched with email');
+    } else {
+      console.warn('[LinkedInAPIClient] ⚠️  Complete profile fetched but email is missing');
+    }
+
+    return completeProfile;
   }
 }
 
