@@ -39,6 +39,9 @@ class EmployeeRepository {
       status
     } = employeeData;
 
+    // Normalize email to lowercase
+    const normalizedEmail = email ? email.toLowerCase().trim() : email;
+
     // Hash password (use default if not provided)
     const passwordToHash = password || 'default123';
     const password_hash = await bcrypt.hash(passwordToHash, 10);
@@ -63,7 +66,7 @@ class EmployeeRepository {
       company_id,
       employee_id,
       full_name,
-      email,
+      normalizedEmail,
       password_hash,
       current_role_in_company,
       target_role_in_company,
@@ -94,8 +97,10 @@ class EmployeeRepository {
    * @returns {Promise<Object|null>} Employee or null
    */
   async findByEmail(email) {
-    const query = 'SELECT * FROM employees WHERE email = $1';
-    const result = await this.pool.query(query, [email]);
+    // Normalize email for case-insensitive lookup
+    const normalizedEmail = email ? email.toLowerCase().trim() : email;
+    const query = 'SELECT * FROM employees WHERE LOWER(TRIM(email)) = LOWER(TRIM($1))';
+    const result = await this.pool.query(query, [normalizedEmail]);
     return result.rows[0] || null;
   }
 
@@ -106,8 +111,10 @@ class EmployeeRepository {
    * @returns {Promise<Object|null>} Employee or null
    */
   async findByEmailAndCompany(email, companyId) {
-    const query = 'SELECT * FROM employees WHERE email = $1 AND company_id = $2';
-    const result = await this.pool.query(query, [email, companyId]);
+    // Normalize email for case-insensitive lookup
+    const normalizedEmail = email ? email.toLowerCase().trim() : email;
+    const query = 'SELECT * FROM employees WHERE LOWER(TRIM(email)) = LOWER(TRIM($1)) AND company_id = $2';
+    const result = await this.pool.query(query, [normalizedEmail, companyId]);
     return result.rows[0] || null;
   }
 
@@ -117,8 +124,10 @@ class EmployeeRepository {
    * @returns {Promise<Object|null>} Employee with company_id or null
    */
   async findEmailOwner(email) {
-    const query = 'SELECT id, email, company_id, full_name FROM employees WHERE email = $1';
-    const result = await this.pool.query(query, [email]);
+    // Normalize email for case-insensitive lookup
+    const normalizedEmail = email ? email.toLowerCase().trim() : email;
+    const query = 'SELECT id, email, company_id, full_name FROM employees WHERE LOWER(TRIM(email)) = LOWER(TRIM($1))';
+    const result = await this.pool.query(query, [normalizedEmail]);
     return result.rows[0] || null;
   }
 
@@ -144,16 +153,19 @@ class EmployeeRepository {
       status
     } = employeeData;
 
+    // Normalize email to lowercase
+    const normalizedEmail = email ? email.toLowerCase().trim() : email;
+
     const queryRunner = client || this.pool;
 
     // Check if email already exists
-    const existingEmailOwner = await this.findEmailOwner(email);
+    const existingEmailOwner = await this.findEmailOwner(normalizedEmail);
     
     if (existingEmailOwner) {
       // Email exists - check if it's for the same company
       if (existingEmailOwner.company_id === company_id) {
         // Same company - UPDATE the employee
-        return await this.updateByEmail(email, company_id, {
+        return await this.updateByEmail(normalizedEmail, company_id, {
           employee_id,
           full_name,
           password,
@@ -164,7 +176,7 @@ class EmployeeRepository {
         }, client);
       } else {
         // Different company - REJECT
-        throw new Error(`Email address "${email}" is already registered to another company. Each email must be unique across all companies.`);
+        throw new Error(`Email address "${normalizedEmail}" is already registered to another company. Each email must be unique across all companies.`);
       }
     }
 
@@ -175,7 +187,7 @@ class EmployeeRepository {
       // Employee ID exists - UPDATE
       return await this.updateByEmployeeId(company_id, employee_id, {
         full_name,
-        email,
+        email: normalizedEmail,
         password,
         current_role_in_company,
         target_role_in_company,
@@ -185,7 +197,7 @@ class EmployeeRepository {
     }
 
     // Neither email nor employee_id exists - INSERT
-    return await this.create(employeeData, client);
+    return await this.create({ ...employeeData, email: normalizedEmail }, client);
   }
 
   /**
@@ -197,9 +209,19 @@ class EmployeeRepository {
    * @returns {Promise<Object>} Updated employee
    */
   async updateByEmail(email, companyId, updateData, client = null) {
+    // Normalize email for case-insensitive lookup
+    const normalizedEmail = email ? email.toLowerCase().trim() : email;
+    
     const updates = [];
     const values = [];
     let paramIndex = 1;
+
+    // Normalize email if it's being updated
+    if (updateData.email !== undefined) {
+      const normalizedUpdateEmail = updateData.email ? updateData.email.toLowerCase().trim() : updateData.email;
+      updates.push(`email = $${paramIndex++}`);
+      values.push(normalizedUpdateEmail);
+    }
 
     if (updateData.full_name !== undefined) {
       updates.push(`full_name = $${paramIndex++}`);
@@ -233,16 +255,16 @@ class EmployeeRepository {
 
     if (updates.length === 0) {
       // No updates - just return existing employee
-      return await this.findByEmailAndCompany(email, companyId);
+      return await this.findByEmailAndCompany(normalizedEmail, companyId);
     }
 
     updates.push(`updated_at = CURRENT_TIMESTAMP`);
-    values.push(email, companyId);
+    values.push(normalizedEmail, companyId);
 
     const query = `
       UPDATE employees
       SET ${updates.join(', ')}
-      WHERE email = $${paramIndex++} AND company_id = $${paramIndex}
+      WHERE LOWER(TRIM(email)) = LOWER(TRIM($${paramIndex++})) AND company_id = $${paramIndex}
       RETURNING *
     `;
 
