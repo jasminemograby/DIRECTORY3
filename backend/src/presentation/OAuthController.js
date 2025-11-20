@@ -173,6 +173,67 @@ class OAuthController {
       console.error('[OAuthController] LinkedIn callback error:', error);
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
       const errorMessage = error.message || 'Failed to connect LinkedIn';
+      
+      // CRITICAL: Even on error, we need to preserve the user session
+      // Extract employee ID from state to build user object
+      try {
+        const stateData = JSON.parse(Buffer.from(req.query.state, 'base64').toString());
+        const employeeId = stateData.employeeId;
+        
+        if (employeeId) {
+          // Get employee data to build user object (for session preservation)
+          const EmployeeRepository = require('../infrastructure/EmployeeRepository');
+          const CompanyRepository = require('../infrastructure/CompanyRepository');
+          const employeeRepo = new EmployeeRepository();
+          const companyRepo = new CompanyRepository();
+          
+          const employee = await employeeRepo.findById(employeeId);
+          if (employee) {
+            const company = await companyRepo.findById(employee.company_id);
+            const isHR = company && company.hr_contact_email && 
+                         company.hr_contact_email.toLowerCase() === employee.email.toLowerCase();
+            
+            const rolesQuery = 'SELECT role_type FROM employee_roles WHERE employee_id = $1';
+            const rolesResult = await employeeRepo.pool.query(rolesQuery, [employeeId]);
+            const roles = rolesResult.rows.map(row => row.role_type);
+            const isTrainer = roles.includes('TRAINER');
+            const isDecisionMaker = roles.includes('DECISION_MAKER');
+            
+            const profileStatus = employee.profile_status || 'basic';
+            const hasLinkedIn = !!employee.linkedin_data;
+            const hasGitHub = !!employee.github_data;
+            
+            const userObject = {
+              id: employee.id,
+              email: employee.email,
+              employeeId: employee.employee_id,
+              companyId: employee.company_id,
+              fullName: employee.full_name,
+              profilePhotoUrl: employee.profile_photo_url || null,
+              isHR: isHR,
+              profileStatus: profileStatus,
+              isFirstLogin: false,
+              isProfileApproved: profileStatus === 'approved',
+              hasLinkedIn: hasLinkedIn,
+              hasGitHub: hasGitHub,
+              bothOAuthConnected: hasLinkedIn && hasGitHub,
+              isTrainer: isTrainer,
+              isDecisionMaker: isDecisionMaker
+            };
+            
+            const dummyToken = `dummy-token-${employee.id}-${employee.email}-${Date.now()}`;
+            const userDataEncoded = Buffer.from(JSON.stringify(userObject)).toString('base64');
+            
+            // Redirect with error, but include token + user to preserve session
+            console.log('[OAuthController] Error occurred, but preserving session with token + user');
+            return res.redirect(`${frontendUrl}/enrich?error=${encodeURIComponent(errorMessage)}&token=${encodeURIComponent(dummyToken)}&user=${encodeURIComponent(userDataEncoded)}`);
+          }
+        }
+      } catch (stateError) {
+        console.error('[OAuthController] Failed to extract employee from state:', stateError);
+      }
+      
+      // Fallback: redirect with error only (no token/user - will require re-login)
       return res.redirect(`${frontendUrl}/enrich?error=${encodeURIComponent(errorMessage)}`);
     }
   }
@@ -317,6 +378,67 @@ class OAuthController {
       console.error('[OAuthController] GitHub callback error:', error);
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
       const errorMessage = error.message || 'Failed to connect GitHub';
+      
+      // CRITICAL: Even on error, we need to preserve the user session
+      // Extract employee ID from state to build user object
+      try {
+        const stateData = JSON.parse(Buffer.from(req.query.state, 'base64').toString());
+        const employeeId = stateData.employeeId;
+        
+        if (employeeId) {
+          // Get employee data to build user object (for session preservation)
+          const EmployeeRepository = require('../infrastructure/EmployeeRepository');
+          const CompanyRepository = require('../infrastructure/CompanyRepository');
+          const employeeRepo = new EmployeeRepository();
+          const companyRepo = new CompanyRepository();
+          
+          const employee = await employeeRepo.findById(employeeId);
+          if (employee) {
+            const company = await companyRepo.findById(employee.company_id);
+            const isHR = company && company.hr_contact_email && 
+                         company.hr_contact_email.toLowerCase() === employee.email.toLowerCase();
+            
+            const rolesQuery = 'SELECT role_type FROM employee_roles WHERE employee_id = $1';
+            const rolesResult = await employeeRepo.pool.query(rolesQuery, [employeeId]);
+            const roles = rolesResult.rows.map(row => row.role_type);
+            const isTrainer = roles.includes('TRAINER');
+            const isDecisionMaker = roles.includes('DECISION_MAKER');
+            
+            const profileStatus = employee.profile_status || 'basic';
+            const hasLinkedIn = !!employee.linkedin_data;
+            const hasGitHub = !!employee.github_data;
+            
+            const userObject = {
+              id: employee.id,
+              email: employee.email,
+              employeeId: employee.employee_id,
+              companyId: employee.company_id,
+              fullName: employee.full_name,
+              profilePhotoUrl: employee.profile_photo_url || null,
+              isHR: isHR,
+              profileStatus: profileStatus,
+              isFirstLogin: false,
+              isProfileApproved: profileStatus === 'approved',
+              hasLinkedIn: hasLinkedIn,
+              hasGitHub: hasGitHub,
+              bothOAuthConnected: hasLinkedIn && hasGitHub,
+              isTrainer: isTrainer,
+              isDecisionMaker: isDecisionMaker
+            };
+            
+            const dummyToken = `dummy-token-${employee.id}-${employee.email}-${Date.now()}`;
+            const userDataEncoded = Buffer.from(JSON.stringify(userObject)).toString('base64');
+            
+            // Redirect with error, but include token + user to preserve session
+            console.log('[OAuthController] Error occurred, but preserving session with token + user');
+            return res.redirect(`${frontendUrl}/enrich?error=${encodeURIComponent(errorMessage)}&token=${encodeURIComponent(dummyToken)}&user=${encodeURIComponent(userDataEncoded)}`);
+          }
+        }
+      } catch (stateError) {
+        console.error('[OAuthController] Failed to extract employee from state:', stateError);
+      }
+      
+      // Fallback: redirect with error only (no token/user - will require re-login)
       return res.redirect(`${frontendUrl}/enrich?error=${encodeURIComponent(errorMessage)}`);
     }
   }

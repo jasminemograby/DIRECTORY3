@@ -81,9 +81,11 @@ This document protects the core enrichment feature (LinkedIn + GitHub OAuth → 
 ### Issue 1: Token Lost During OAuth Redirect
 **Symptoms**: User redirected to login page after OAuth callback
 **Solution**: 
-- OAuth callbacks must include token + user data in redirect URL
+- OAuth callbacks must include token + user data in redirect URL (even on errors!)
 - Frontend must extract and store both before any validation
 - AuthContext must skip validation during OAuth callbacks
+- **CRITICAL**: OAuth errors are still OAuth callbacks - must preserve token/user
+- Use `!!errorParam` (boolean coercion) not just `errorParam` (string value)
 - See: `docs/OAUTH-TOKEN-PERSISTENCE-FIX.md`
 
 ### Issue 2: Premature Redirect to Profile
@@ -109,6 +111,15 @@ This document protects the core enrichment feature (LinkedIn + GitHub OAuth → 
 - Check Railway logs for enrichment errors
 - Verify Gemini API key is configured
 
+### Issue 5: OAuth Errors Cause Redirect to Login
+**Symptoms**: When LinkedIn/GitHub returns error (e.g., "already connected"), user gets redirected to login
+**Solution**:
+- Backend must include token + user in error redirects (preserve session)
+- Frontend must treat error params as OAuth callbacks (`!!errorParam`)
+- Never redirect to login during OAuth callbacks (including errors)
+- Show error message on enrich page, don't clear session
+- See commits: `c93e844`, `607e907`, `24ecb9a`
+
 ## Testing Checklist
 
 Before making changes to enrichment-related code:
@@ -127,11 +138,14 @@ Before making changes to enrichment-related code:
 
 ## Protection Rules
 
-1. **Never remove OAuth callback token/user data** - Always include both in redirect URLs
+1. **Never remove OAuth callback token/user data** - Always include both in redirect URLs (even on errors!)
 2. **Never skip OAuth callback detection** - Always check URL params before redirecting
-3. **Never remove Gemini fallback** - Always have MockDataService as backup
-4. **Never modify enrichment trigger logic** - Both OAuth must be connected
-5. **Always test end-to-end** - OAuth → Enrichment → Profile → Approval
+3. **Always use boolean coercion for OAuth detection** - Use `!!errorParam`, not `errorParam` (prevents string values)
+4. **Never redirect to login during OAuth callbacks** - Including errors - show error on enrich page instead
+5. **Never remove Gemini fallback** - Always have MockDataService as backup
+6. **Never modify enrichment trigger logic** - Both OAuth must be connected
+7. **Always preserve session on OAuth errors** - Backend must return token + user even when OAuth fails
+8. **Always test end-to-end** - OAuth → Enrichment → Profile → Approval
 
 ## Documentation Log
 
@@ -147,8 +161,32 @@ Before making changes to enrichment-related code:
 - **Files Modified**: `EnrichProfilePage.js`
 - **Commit**: `0cbd85f`
 
-### 2025-01-20: Generic Bio Issue (Current)
+### 2025-01-20: Generic Bio Issue
 - **Issue**: All profiles have same bio, uses "they" instead of "he/she"
-- **Status**: Investigating - checking if Gemini is being called or using mock data
-- **Next Steps**: Improve prompts, verify Gemini API key, check Railway logs
+- **Solution**: Improved Gemini prompts with pronoun detection and personalization
+- **Files Modified**: `GeminiAPIClient.js`, `EnrichProfileUseCase.js`
+- **Commit**: `f3ab5da`
+
+### 2025-01-20: OAuth Error Redirect Fix
+- **Issue**: OAuth errors (e.g., "already connected") caused redirect to login page
+- **Root Cause**: 
+  - Backend didn't include token + user in error redirects
+  - Frontend used `errorParam` (string) instead of `!!errorParam` (boolean)
+  - Token validation cleared storage during OAuth errors
+- **Solution**: 
+  - Backend now includes token + user in all OAuth error redirects
+  - Frontend uses boolean coercion (`!!errorParam`) for OAuth callback detection
+  - AuthContext preserves token/user during OAuth errors
+  - Never redirect to login during OAuth callbacks (including errors)
+- **Files Modified**: `OAuthController.js`, `AuthContext.js`, `EnrichProfilePage.js`
+- **Commits**: `c93e844`, `607e907`, `24ecb9a`
+
+### 2025-01-20: LinkedIn Scope Mismatch
+- **Issue**: `unauthorized_scope_error` - OAuth URL requesting legacy scopes, app configured for OpenID Connect
+- **Solution**: 
+  - Default to OpenID Connect scopes (`openid`, `profile`, `email`)
+  - Remove `LINKEDIN_USE_LEGACY_SCOPES` from Railway to use OpenID Connect
+  - Improved error messages and documentation
+- **Files Modified**: `LinkedInOAuthClient.js`, `LinkedInAPIClient.js`
+- **Commits**: `9c861a7`, `01faad1`, `123a878`
 
