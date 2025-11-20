@@ -134,6 +134,9 @@ function EnrichProfilePage() {
         const newUrl = new URL(window.location.href);
         newUrl.searchParams.delete('token'); // Remove token from URL for security
         newUrl.searchParams.delete('user'); // Remove user from URL for security
+        newUrl.searchParams.delete('linkedin'); // Clear OAuth callback param
+        newUrl.searchParams.delete('github'); // Clear OAuth callback param
+        newUrl.searchParams.delete('enriched'); // Clear enrichment param
         window.history.replaceState({}, document.title, newUrl.pathname + newUrl.search);
         return; // Don't call refreshUser - we already have the user
       }
@@ -211,6 +214,10 @@ function EnrichProfilePage() {
           // Clear URL params after processing (but keep token in localStorage)
           const newUrl = new URL(window.location.href);
           newUrl.searchParams.delete('token'); // Remove token from URL for security
+          newUrl.searchParams.delete('user'); // Remove user from URL for security
+          newUrl.searchParams.delete('linkedin'); // Clear OAuth callback param
+          newUrl.searchParams.delete('github'); // Clear OAuth callback param
+          newUrl.searchParams.delete('enriched'); // Clear enrichment param
           window.history.replaceState({}, document.title, newUrl.pathname + newUrl.search);
         });
     }

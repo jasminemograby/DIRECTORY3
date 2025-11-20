@@ -40,8 +40,13 @@ class EmployeeRepository {
     } = employeeData;
 
     // Hash password (use default if not provided)
-    const passwordToHash = password || 'default123';
+    // CRITICAL: Password is required for employees, but we allow default for testing
+    const passwordToHash = password && password.trim().length > 0 ? password : 'default123';
+    if (!passwordToHash || passwordToHash.trim().length === 0) {
+      throw new Error('Password is required for employee creation');
+    }
     const password_hash = await bcrypt.hash(passwordToHash, 10);
+    console.log(`[EmployeeRepository] Creating employee ${email} with password hash (length: ${password_hash.length})`);
 
     const query = `
       INSERT INTO employees (
@@ -153,15 +158,20 @@ class EmployeeRepository {
       // Email exists - check if it's for the same company
       if (existingEmailOwner.company_id === company_id) {
         // Same company - UPDATE the employee
-        return await this.updateByEmail(email, company_id, {
+        // Only update password if it's provided (not null/undefined/empty)
+        const updateData = {
           employee_id,
           full_name,
-          password,
           current_role_in_company,
           target_role_in_company,
           preferred_language,
           status
-        }, client);
+        };
+        // Only include password in update if it's provided
+        if (password && password.trim().length > 0) {
+          updateData.password = password;
+        }
+        return await this.updateByEmail(email, company_id, updateData, client);
       } else {
         // Different company - REJECT
         throw new Error(`Email address "${email}" is already registered to another company. Each email must be unique across all companies.`);
@@ -173,15 +183,20 @@ class EmployeeRepository {
     
     if (existingEmployee) {
       // Employee ID exists - UPDATE
-      return await this.updateByEmployeeId(company_id, employee_id, {
+      // Only update password if it's provided (not null/undefined/empty)
+      const updateData = {
         full_name,
         email,
-        password,
         current_role_in_company,
         target_role_in_company,
         preferred_language,
         status
-      }, client);
+      };
+      // Only include password in update if it's provided
+      if (password && password.trim().length > 0) {
+        updateData.password = password;
+      }
+      return await this.updateByEmployeeId(company_id, employee_id, updateData, client);
     }
 
     // Neither email nor employee_id exists - INSERT

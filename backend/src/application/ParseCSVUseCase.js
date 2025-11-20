@@ -164,17 +164,24 @@ class ParseCSVUseCase {
         }
 
         // Create or update employee (handles email uniqueness)
+        // Ensure password is provided (required field from CSV)
+        const employeePassword = validatedRow.password && validatedRow.password.trim().length > 0 
+          ? validatedRow.password 
+          : 'SecurePass123'; // Default password if not provided in CSV
+        
         const employee = await this.employeeRepository.createOrUpdate({
           company_id: companyId,
           employee_id: validatedRow.employee_id,
           full_name: validatedRow.full_name,
           email: validatedRow.email,
-          password: validatedRow.password,
+          password: employeePassword, // Always provide a password (hashed in repository)
           current_role_in_company: validatedRow.current_role_in_company,
           target_role_in_company: validatedRow.target_role_in_company,
           preferred_language: validatedRow.preferred_language,
           status: validatedRow.status
         }, client);
+        
+        console.log(`[ParseCSVUseCase] Created/updated employee ${validatedRow.email} with password (will be hashed)`);
 
         createdEmployees.set(validatedRow.employee_id, employee.id);
         employeeIdToUuid.set(validatedRow.employee_id, employee.id);

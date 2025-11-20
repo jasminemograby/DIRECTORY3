@@ -60,6 +60,8 @@ class AuthenticateUserUseCase {
           const passwordMatch = await bcrypt.compare(password, employee.password_hash);
           if (!passwordMatch) {
             console.log(`[AuthenticateUserUseCase] Password mismatch for email: ${normalizedEmail}`);
+            console.log(`[AuthenticateUserUseCase] Attempted password length: ${password ? password.length : 0}`);
+            console.log(`[AuthenticateUserUseCase] Stored password_hash exists: ${!!employee.password_hash}`);
             return {
               success: false,
               error: 'Invalid email or password'
