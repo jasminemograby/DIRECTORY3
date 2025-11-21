@@ -114,8 +114,9 @@ class GetManagerHierarchyUseCase {
         teams: teamsWithEmployees
       };
     } else if (isTeamManager) {
-      // Team Manager: Find which team they manage by looking at managed employees
-      const managedTeamQuery = `
+      // Team Manager: Find which team they manage
+      // First, try to find team from employee_managers (if they have managed employees)
+      let managedTeamQuery = `
         SELECT DISTINCT
           t.id,
           t.team_id,
@@ -128,13 +129,31 @@ class GetManagerHierarchyUseCase {
           AND em.relationship_type = 'team_manager'
         LIMIT 1
       `;
-      const teamResult = await this.employeeRepository.pool.query(managedTeamQuery, [managerId]);
+      let teamResult = await this.employeeRepository.pool.query(managedTeamQuery, [managerId]);
+      
+      // If no managed employees found, get the team the manager belongs to directly
+      if (teamResult.rows.length === 0) {
+        console.log(`[GetManagerHierarchyUseCase] No managed employees found for team manager ${managerId}, checking manager's own team assignment`);
+        const managerTeamQuery = `
+          SELECT 
+            t.id,
+            t.team_id,
+            t.team_name
+          FROM employee_teams et
+          JOIN teams t ON et.team_id = t.id
+          WHERE et.employee_id = $1
+          LIMIT 1
+        `;
+        teamResult = await this.employeeRepository.pool.query(managerTeamQuery, [managerId]);
+      }
       
       if (teamResult.rows.length === 0) {
+        console.log(`[GetManagerHierarchyUseCase] No team found for team manager ${managerId}`);
         return null; // No team found
       }
 
       const team = teamResult.rows[0];
+      console.log(`[GetManagerHierarchyUseCase] Found team for manager ${managerId}: ${team.team_name} (${team.team_id})`);
 
       // Get all employees in this team
       const employeesQuery = `
