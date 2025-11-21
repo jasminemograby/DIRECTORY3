@@ -65,6 +65,22 @@
 - Need to verify API call sequences
 - Need to check microservice integration patterns
 
+### 4. File Reference Documentation
+**File**: `UPDATED-PROFILES-FILE-REFERENCE.md`
+
+**Contents**:
+- Complete listing of all project files
+- Description of what each file contains
+- Purpose of each file
+- Organized by category (Frontend, Backend, Database, Documentation)
+- File count summary
+
+**Use When**:
+- Need to find a specific file
+- Need to understand what a file does
+- Need to locate code for a specific feature
+- Need to understand project structure
+
 ---
 
 ## Quick Reference
@@ -253,6 +269,8 @@ Auth endpoints (`/auth/login`, `/auth/logout`, `/auth/me`) do NOT use envelope s
 ---
 
 ## File Locations
+
+For a complete listing of all files with descriptions, see **`UPDATED-PROFILES-FILE-REFERENCE.md`**.
 
 ### Frontend Key Files
 
