@@ -19,7 +19,12 @@ function ProfileSkills({ employeeId }) {
         setLoading(true);
         setError(null);
         const response = await getEmployeeSkills(user.companyId, employeeId);
-        const skills = response?.skills || response?.response?.skills || response;
+        console.log('[ProfileSkills] Raw response:', response);
+        // Handle envelope structure: { requester_service: 'directory_service', response: { success: true, skills: {...} } }
+        // The middleware wraps the controller response, so we need response.response.skills
+        const skills = response?.response?.skills || response?.skills || response?.response || response;
+        console.log('[ProfileSkills] Extracted skills:', skills);
+        console.log('[ProfileSkills] Skills competencies:', skills?.competencies?.length || 0);
         setSkillsData(skills);
       } catch (err) {
         console.error('[ProfileSkills] Error fetching skills:', err);
