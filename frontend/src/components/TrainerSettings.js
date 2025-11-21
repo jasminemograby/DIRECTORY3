@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { updateTrainerSettings, getTrainerSettings } from '../services/trainerService';
 
-function TrainerSettings({ employeeId, onUpdate }) {
+function TrainerSettings({ employeeId, onUpdate, isViewOnly = false }) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -120,11 +120,12 @@ function TrainerSettings({ employeeId, onUpdate }) {
         </div>
         <button
           onClick={() => handleToggle('aiEnabled')}
-          disabled={saving}
+          disabled={saving || isViewOnly}
           className={`ml-4 relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
             settings.aiEnabled ? 'bg-teal-600' : 'bg-gray-300'
           }`}
-          style={{ opacity: saving ? 0.6 : 1, cursor: saving ? 'not-allowed' : 'pointer' }}
+          style={{ opacity: (saving || isViewOnly) ? 0.6 : 1, cursor: (saving || isViewOnly) ? 'not-allowed' : 'pointer' }}
+          title={isViewOnly ? 'View-only mode: Cannot modify settings' : ''}
         >
           <span
             className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -146,11 +147,12 @@ function TrainerSettings({ employeeId, onUpdate }) {
         </div>
         <button
           onClick={() => handleToggle('publicPublishEnable')}
-          disabled={saving}
+          disabled={saving || isViewOnly}
           className={`ml-4 relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
             settings.publicPublishEnable ? 'bg-teal-600' : 'bg-gray-300'
           }`}
-          style={{ opacity: saving ? 0.6 : 1, cursor: saving ? 'not-allowed' : 'pointer' }}
+          style={{ opacity: (saving || isViewOnly) ? 0.6 : 1, cursor: (saving || isViewOnly) ? 'not-allowed' : 'pointer' }}
+          title={isViewOnly ? 'View-only mode: Cannot modify settings' : ''}
         >
           <span
             className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${

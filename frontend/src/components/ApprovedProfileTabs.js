@@ -9,7 +9,7 @@ import ProfileAnalytics from './ProfileAnalytics';
 import ProfileDashboard from './ProfileDashboard';
 import ProfileRequests from './ProfileRequests';
 
-function ApprovedProfileTabs({ employeeId, user, employee }) {
+function ApprovedProfileTabs({ employeeId, user, employee, isViewOnly = false }) {
   const [activeTab, setActiveTab] = useState('skills');
 
   const tabs = [
@@ -60,7 +60,7 @@ function ApprovedProfileTabs({ employeeId, user, employee }) {
 
       {/* Tab Content */}
       <div>
-        {ActiveComponent && <ActiveComponent employeeId={employeeId} user={user} employee={employee} />}
+        {ActiveComponent && <ActiveComponent employeeId={employeeId} user={user} employee={employee} isViewOnly={isViewOnly} />}
       </div>
     </div>
   );

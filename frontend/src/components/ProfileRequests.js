@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { submitEmployeeRequest, getEmployeeRequests } from '../services/employeeService';
 
-function ProfileRequests({ employeeId }) {
+function ProfileRequests({ employeeId, isViewOnly = false }) {
   const { user } = useAuth();
   const [requestType, setRequestType] = useState('');
   const [title, setTitle] = useState('');
@@ -151,7 +151,8 @@ function ProfileRequests({ employeeId }) {
           </div>
         )}
 
-        {/* Submit New Request Form */}
+        {/* Submit New Request Form - Hidden in view-only mode */}
+        {!isViewOnly && (
         <div className="mb-6">
           <h3 className="text-sm font-medium mb-3" style={{ color: 'var(--text-primary)' }}>
             Submit New Request
@@ -228,6 +229,7 @@ function ProfileRequests({ employeeId }) {
             </button>
           </div>
         </div>
+        )}
 
         {/* Existing Requests */}
         <div>

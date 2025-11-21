@@ -114,6 +114,10 @@ function EmployeeProfilePage() {
                    (employee.roles.includes('DEPARTMENT_MANAGER') || employee.roles.includes('TEAM_MANAGER'));
   const isApproved = profileStatus === 'approved';
   
+  // Determine if current user is viewing their own profile or someone else's
+  const isOwnProfile = user?.id === employeeId;
+  const isViewOnly = !isOwnProfile; // Read-only mode when viewing someone else's profile
+  
   if (process.env.NODE_ENV === 'development') {
     console.log('[EmployeeProfilePage] Management Section Debug:', {
       employeeName: employee.full_name,
@@ -121,7 +125,9 @@ function EmployeeProfilePage() {
       isApproved,
       roles: employee.roles,
       isManager,
-      willShowManagement: isApproved && isManager
+      willShowManagement: isApproved && isManager,
+      isOwnProfile,
+      isViewOnly
     });
   }
 
@@ -440,22 +446,24 @@ function EmployeeProfilePage() {
                             {idx === sentences.length - 1 && (
                               <>
                                 {' '}
-                                <button
-                                  onClick={() => {
-                                    alert('You are being redirected to the Skills Engine page.');
-                                    // TODO: When Skills Engine frontend is available, redirect to it
-                                    // navigate('/skills-engine');
-                                  }}
-                                  className="text-teal-600 hover:text-teal-700 underline font-medium cursor-pointer"
-                                  style={{
-                                    background: 'transparent',
-                                    border: 'none',
-                                    padding: 0,
-                                    textDecoration: 'underline'
-                                  }}
-                                >
-                                  READ MORE
-                                </button>
+                                {isOwnProfile && (
+                                  <button
+                                    onClick={() => {
+                                      alert('You are being redirected to the Skills Engine page.');
+                                      // TODO: When Skills Engine frontend is available, redirect to it
+                                      // navigate('/skills-engine');
+                                    }}
+                                    className="text-teal-600 hover:text-teal-700 underline font-medium cursor-pointer"
+                                    style={{
+                                      background: 'transparent',
+                                      border: 'none',
+                                      padding: 0,
+                                      textDecoration: 'underline'
+                                    }}
+                                  >
+                                    READ MORE
+                                  </button>
+                                )}
                               </>
                             )}
                           </p>
@@ -468,22 +476,24 @@ function EmployeeProfilePage() {
                   return (
                     <p>
                       {valueProp.trim()}{' '}
-                      <button
-                        onClick={() => {
-                          alert('You are being redirected to the Skills Engine page.');
-                          // TODO: When Skills Engine frontend is available, redirect to it
-                          // navigate('/skills-engine');
-                        }}
-                        className="text-teal-600 hover:text-teal-700 underline font-medium cursor-pointer"
-                        style={{
-                          background: 'transparent',
-                          border: 'none',
-                          padding: 0,
-                          textDecoration: 'underline'
-                        }}
-                      >
-                        READ MORE
-                      </button>
+                      {isOwnProfile && (
+                        <button
+                          onClick={() => {
+                            alert('You are being redirected to the Skills Engine page.');
+                            // TODO: When Skills Engine frontend is available, redirect to it
+                            // navigate('/skills-engine');
+                          }}
+                          className="text-teal-600 hover:text-teal-700 underline font-medium cursor-pointer"
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            padding: 0,
+                            textDecoration: 'underline'
+                          }}
+                        >
+                          READ MORE
+                        </button>
+                      )}
                     </p>
                   );
                 })()}
@@ -589,9 +599,10 @@ function EmployeeProfilePage() {
 
             {/* Tabs for organizing sections */}
             <ApprovedProfileTabs 
-              employeeId={employeeId}
-              user={user}
+              employeeId={employeeId} 
+              user={user} 
               employee={employee}
+              isViewOnly={isViewOnly}
             />
           </div>
         )}
@@ -645,6 +656,7 @@ function EmployeeProfilePage() {
                   // Update local state if needed
                   setEmployee({ ...employee, trainer_settings: settings });
                 }}
+                isViewOnly={isViewOnly}
               />
             </div>
           </div>
