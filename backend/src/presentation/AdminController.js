@@ -43,19 +43,14 @@ class AdminController {
       }));
 
       console.log('[AdminController] Returning companies:', companies.length);
+      // Return data directly - formatResponse middleware will wrap it in envelope
       return res.status(200).json({
-        requester_service: 'directory_service',
-        response: {
-          companies: companies
-        }
+        companies: companies
       });
     } catch (error) {
       console.error('[AdminController] Error fetching companies:', error);
       return res.status(500).json({
-        requester_service: 'directory_service',
-        response: {
-          error: 'An error occurred while fetching companies'
-        }
+        error: 'An error occurred while fetching companies'
       });
     }
   }
@@ -72,40 +67,32 @@ class AdminController {
       
       if (!company) {
         return res.status(404).json({
-          requester_service: 'directory_service',
-          response: {
-            error: 'Company not found'
-          }
+          error: 'Company not found'
         });
       }
 
+      // Return data directly - formatResponse middleware will wrap it in envelope
       return res.status(200).json({
-        requester_service: 'directory_service',
-        response: {
-          company: {
-            id: company.id,
-            company_name: company.company_name,
-            industry: company.industry,
-            domain: company.domain,
-            hr_contact_name: company.hr_contact_name,
-            hr_contact_email: company.hr_contact_email,
-            hr_contact_role: company.hr_contact_role,
-            verification_status: company.verification_status,
-            approval_policy: company.approval_policy,
-            kpis: company.kpis,
-            logo_url: company.logo_url,
-            created_at: company.created_at,
-            updated_at: company.updated_at
-          }
+        company: {
+          id: company.id,
+          company_name: company.company_name,
+          industry: company.industry,
+          domain: company.domain,
+          hr_contact_name: company.hr_contact_name,
+          hr_contact_email: company.hr_contact_email,
+          hr_contact_role: company.hr_contact_role,
+          verification_status: company.verification_status,
+          approval_policy: company.approval_policy,
+          kpis: company.kpis,
+          logo_url: company.logo_url,
+          created_at: company.created_at,
+          updated_at: company.updated_at
         }
       });
     } catch (error) {
       console.error('[AdminController] Error fetching company:', error);
       return res.status(500).json({
-        requester_service: 'directory_service',
-        response: {
-          error: 'An error occurred while fetching company'
-        }
+        error: 'An error occurred while fetching company'
       });
     }
   }
@@ -124,10 +111,7 @@ class AdminController {
       
       if (!employee) {
         return res.status(404).json({
-          requester_service: 'directory_service',
-          response: {
-            error: 'Employee not found'
-          }
+          error: 'Employee not found'
         });
       }
 
@@ -175,19 +159,14 @@ class AdminController {
         team: deptTeam.team_name || null
       };
 
+      // Return data directly - formatResponse middleware will wrap it in envelope
       return res.status(200).json({
-        requester_service: 'directory_service',
-        response: {
-          employee: employeeData
-        }
+        employee: employeeData
       });
     } catch (error) {
       console.error('[AdminController] Error fetching employee:', error);
       return res.status(500).json({
-        requester_service: 'directory_service',
-        response: {
-          error: 'An error occurred while fetching employee'
-        }
+        error: 'An error occurred while fetching employee'
       });
     }
   }
