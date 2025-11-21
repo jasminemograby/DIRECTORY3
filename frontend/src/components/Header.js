@@ -304,6 +304,16 @@ function Header() {
                           HR Manager
                         </div>
                       )}
+                      {(user.isAdmin || user.role === 'DIRECTORY_ADMIN') && (
+                        <div style={{ 
+                          fontSize: tokens?.global?.typography?.fontSize?.xs?.size || '12px',
+                          color: modeTokens?.text?.link || '#047857',
+                          marginTop: '4px',
+                          fontWeight: tokens?.global?.typography?.fontWeight?.medium || 500
+                        }}>
+                          Directory Admin
+                        </div>
+                      )}
                     </div>
                     <button
                       type="button"

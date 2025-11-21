@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { DesignSystemProvider } from './context/DesignSystemContext';
 import LandingPage from './pages/LandingPage';
@@ -14,18 +14,6 @@ import AdminDashboard from './pages/AdminDashboard';
 import Header from './components/Header';
 import './App.css';
 
-// Conditional Header - Hide for admin routes
-function ConditionalHeader() {
-  const location = useLocation();
-  const isAdminRoute = location.pathname.startsWith('/admin');
-  
-  if (isAdminRoute) {
-    return null;
-  }
-  
-  return <Header />;
-}
-
 function App() {
   return (
     <Router>
@@ -33,7 +21,7 @@ function App() {
         <AuthProvider>
           <div className="App">
             <div className="bg-animation"></div>
-            <ConditionalHeader />
+            <Header />
             <main className="app-content">
               <Routes>
                 <Route path="/" element={<LandingPage />} />

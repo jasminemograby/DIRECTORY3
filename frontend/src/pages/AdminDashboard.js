@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AdminHeader from '../components/AdminHeader';
+import Header from '../components/Header';
 import { getAllCompanies } from '../services/adminService';
 
 function AdminDashboard() {
@@ -61,7 +61,7 @@ function AdminDashboard() {
       className="min-h-screen"
       style={{ background: 'var(--bg-primary)' }}
     >
-      <AdminHeader />
+      <Header />
 
       <div className="max-w-7xl mx-auto px-6 pb-6">
         {/* Tabs */}

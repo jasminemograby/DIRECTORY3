@@ -271,12 +271,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Login user (supports both employee and admin)
+   * Login user (supports both employee and admin - auto-detected by backend)
    */
-  const login = async (email, password, isAdmin = false) => {
+  const login = async (email, password) => {
     try {
       setLoading(true);
-      const result = await authService.login(email, password, isAdmin);
+      const result = await authService.login(email, password);
 
       if (result.success) {
         setUser(result.user);

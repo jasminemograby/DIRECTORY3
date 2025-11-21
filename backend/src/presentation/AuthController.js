@@ -13,11 +13,11 @@ class AuthController {
   /**
    * Handle login request
    * POST /api/v1/auth/login
-   * Supports both employee and admin login
+   * Auto-detects admin vs employee login by checking email in directory_admins table first
    */
   async login(req, res, next) {
     try {
-      const { email, password, isAdmin } = req.body;
+      const { email, password } = req.body;
 
       if (!email || !password) {
         return res.status(400).json({
@@ -25,24 +25,19 @@ class AuthController {
         });
       }
 
-      // Check if this is an admin login
-      if (isAdmin === true) {
-        const result = await this.authenticateAdminUseCase.execute(email, password);
-        
-        if (result.success) {
-          return res.status(200).json({
-            success: true,
-            token: result.token,
-            user: result.user
-          });
-        } else {
-          return res.status(401).json({
-            success: false,
-            error: result.error
-          });
-        }
+      // Auto-detect admin: Try admin authentication first
+      const adminResult = await this.authenticateAdminUseCase.execute(email, password);
+      
+      if (adminResult.success) {
+        // Admin login successful
+        return res.status(200).json({
+          success: true,
+          token: adminResult.token,
+          user: adminResult.user
+        });
       }
 
+      // If admin login failed (not an admin or wrong password), try employee login
       // Regular employee login
       const result = await this.authenticateUserUseCase.execute(email, password);
 
