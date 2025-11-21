@@ -10,7 +10,20 @@
 
 ### File 1: `frontend/src/components/ProfileSkills.js`
 
-**Line 21-27**: Updated data extraction logic to properly handle response envelope structure
+**Complete Redesign** (Lines 1-248):
+- **Line 21-27**: Updated data extraction logic to properly handle response envelope structure
+- **Lines 13, 29-35**: Added `expandedNodes` state to track which tree nodes are expanded
+- **Lines 37-50**: Added helper functions for tree node management (`getNodeKey`, `toggleNode`, `isExpanded`, `hasChildren`)
+- **Lines 52-120**: Completely redesigned `renderTreeNode` function to create hierarchical tree view with expand/collapse
+- **Lines 198-225**: Removed Skills Gap display section (missing skills list)
+- **Lines 227-243**: Changed "View Skills Gap" button to "View More" button with Skills Engine redirect message
+- **Tree View Features**:
+  - Expandable/collapsible nodes with ▶ (collapsed) and ▼ (expanded) icons
+  - Multi-level hierarchy support
+  - Consistent indentation (24px per level)
+  - Visual indicators (borders, hover effects)
+  - Skills displayed as badges at leaf nodes
+  - Verified skills shown with green checkmark
 
 ### File 2: `backend/src/infrastructure/MockDataService.js`
 

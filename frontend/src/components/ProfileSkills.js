@@ -1,5 +1,5 @@
 // Component - Profile Skills Section
-// Displays employee skills from Skills Engine
+// Displays employee skills from Skills Engine in a hierarchical tree view
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
@@ -10,6 +10,7 @@ function ProfileSkills({ employeeId }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [skillsData, setSkillsData] = useState(null);
+  const [expandedNodes, setExpandedNodes] = useState(new Set());
 
   useEffect(() => {
     const fetchSkills = async () => {
@@ -69,49 +70,131 @@ function ProfileSkills({ employeeId }) {
     fetchSkills();
   }, [employeeId, user?.companyId]);
 
-  const renderCompetencies = (competencies, level = 0) => {
-    if (!competencies || competencies.length === 0) return null;
+  // Generate unique key for each node based on path
+  const getNodeKey = (path) => path.join('|');
+
+  // Toggle expand/collapse for a node
+  const toggleNode = (path) => {
+    const key = getNodeKey(path);
+    setExpandedNodes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(key)) {
+        newSet.delete(key);
+      } else {
+        newSet.add(key);
+      }
+      return newSet;
+    });
+  };
+
+  // Check if node is expanded
+  const isExpanded = (path) => {
+    return expandedNodes.has(getNodeKey(path));
+  };
+
+  // Check if node has children (nested_competencies or skills)
+  const hasChildren = (node) => {
+    return (node.nested_competencies && node.nested_competencies.length > 0) ||
+           (node.skills && node.skills.length > 0);
+  };
+
+  // Render a single tree node
+  const renderTreeNode = (node, path = [], level = 0) => {
+    const nodeKey = getNodeKey(path);
+    const hasChildrenNodes = hasChildren(node);
+    const isNodeExpanded = isExpanded(path);
+    const indentLevel = level * 24; // 24px per level
 
     return (
-      <div className={level > 0 ? 'ml-4 mt-2' : ''}>
-        {competencies.map((comp, idx) => (
-          <div key={idx} className="mb-3">
-            <div 
-              className="font-medium mb-1"
-              style={{ 
-                color: 'var(--text-primary)',
-                fontSize: level === 0 ? '1rem' : level === 1 ? '0.9rem' : '0.85rem'
+      <div key={nodeKey} className="mb-1">
+        <div
+          className="flex items-center py-2 px-3 rounded-md hover:bg-opacity-50 transition-colors cursor-pointer"
+          style={{
+            marginLeft: `${indentLevel}px`,
+            background: level === 0 ? 'var(--bg-primary, #f8fafc)' : 'transparent',
+            borderLeft: level > 0 ? '2px solid var(--border-default, #e2e8f0)' : 'none',
+            paddingLeft: level > 0 ? '12px' : '12px'
+          }}
+          onClick={() => hasChildrenNodes && toggleNode(path)}
+        >
+          {/* Expand/Collapse Icon */}
+          {hasChildrenNodes ? (
+            <span
+              className="mr-2 flex items-center justify-center"
+              style={{
+                width: '20px',
+                height: '20px',
+                color: 'var(--text-secondary, #64748b)',
+                fontSize: '12px'
               }}
             >
-              {comp.name}
-            </div>
-            {comp.skills && comp.skills.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {comp.skills.map((skill, skillIdx) => (
-                  <span
-                    key={skillIdx}
-                    className="px-3 py-1 rounded-full text-sm"
-                    style={{
-                      background: skill.verified 
-                        ? 'rgba(34, 197, 94, 0.1)' 
-                        : 'var(--bg-primary)',
-                      border: `1px solid ${skill.verified ? 'rgb(34, 197, 94)' : 'var(--border-default)'}`,
-                      color: skill.verified 
-                        ? 'rgb(34, 197, 94)' 
-                        : 'var(--text-secondary)'
-                    }}
-                  >
-                    {skill.name}
-                    {skill.verified && (
-                      <span className="ml-1" title="Verified">✓</span>
-                    )}
-                  </span>
-                ))}
+              {isNodeExpanded ? '▼' : '▶'}
+            </span>
+          ) : (
+            <span className="mr-2" style={{ width: '20px', display: 'inline-block' }}></span>
+          )}
+
+          {/* Node Name */}
+          <span
+            className="font-medium flex-1"
+            style={{
+              color: 'var(--text-primary, #1e293b)',
+              fontSize: level === 0 ? '1rem' : level === 1 ? '0.95rem' : '0.9rem',
+              fontWeight: level === 0 ? '600' : level === 1 ? '500' : '400'
+            }}
+          >
+            {node.name}
+          </span>
+        </div>
+
+        {/* Render Children (nested competencies or skills) */}
+        {hasChildrenNodes && isNodeExpanded && (
+          <div className="mt-1">
+            {/* Render nested competencies */}
+            {node.nested_competencies && node.nested_competencies.length > 0 && (
+              <div>
+                {node.nested_competencies.map((child, idx) =>
+                  renderTreeNode(child, [...path, 'nested', idx], level + 1)
+                )}
               </div>
             )}
-            {comp.nested_competencies && renderCompetencies(comp.nested_competencies, level + 1)}
+
+            {/* Render skills (leaf nodes) */}
+            {node.skills && node.skills.length > 0 && (
+              <div
+                style={{
+                  marginLeft: `${(level + 1) * 24}px`,
+                  paddingLeft: '12px',
+                  borderLeft: '2px solid var(--border-default, #e2e8f0)'
+                }}
+              >
+                <div className="flex flex-wrap gap-2 mt-2 mb-3">
+                  {node.skills.map((skill, skillIdx) => (
+                    <span
+                      key={skillIdx}
+                      className="px-3 py-1.5 rounded-full text-sm"
+                      style={{
+                        background: skill.verified
+                          ? 'rgba(34, 197, 94, 0.1)'
+                          : 'var(--bg-primary, #f8fafc)',
+                        border: `1px solid ${skill.verified ? 'rgb(34, 197, 94)' : 'var(--border-default, #e2e8f0)'}`,
+                        color: skill.verified
+                          ? 'rgb(34, 197, 94)'
+                          : 'var(--text-secondary, #64748b)',
+                        fontWeight: '500'
+                      }}
+                    >
+                      {skill.name}
+                      {skill.verified && (
+                        <span className="ml-1.5" title="Verified">✓</span>
+                      )}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        ))}
+        )}
       </div>
     );
   };
@@ -155,7 +238,6 @@ function ProfileSkills({ employeeId }) {
   // Handle both flat competencies array and nested_competencies structure
   const competencies = skillsData?.competencies || skillsData?.nested_competencies || [];
   const relevanceScore = skillsData?.relevance_score || 0;
-  const missingSkills = skillsData?.gap?.missing_skills || [];
 
   return (
     <div className="mb-6">
@@ -168,7 +250,7 @@ function ProfileSkills({ employeeId }) {
       }}>
         {/* Relevance Score */}
         {relevanceScore > 0 && (
-          <div className="mb-4">
+          <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
                 Relevance Score
@@ -189,10 +271,12 @@ function ProfileSkills({ employeeId }) {
           </div>
         )}
 
-        {/* Competencies */}
+        {/* Skills Tree View */}
         {competencies.length > 0 ? (
           <div className="mb-4">
-            {renderCompetencies(competencies)}
+            {competencies.map((comp, idx) =>
+              renderTreeNode(comp, [idx], 0)
+            )}
           </div>
         ) : (
           <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
@@ -200,44 +284,27 @@ function ProfileSkills({ employeeId }) {
           </p>
         )}
 
-        {/* Missing Skills (Gap) */}
-        {missingSkills.length > 0 && (
-          <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--border-default)' }}>
-            <h3 className="text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
-              Skills Gap
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {missingSkills.map((skill, idx) => (
-                <span
-                  key={idx}
-                  className="px-3 py-1 rounded-full text-sm"
-                  style={{
-                    background: 'rgba(251, 191, 36, 0.1)',
-                    border: '1px solid rgb(251, 191, 36)',
-                    color: 'rgb(251, 191, 36)'
-                  }}
-                >
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Actions */}
-        <div className="flex gap-2 mt-4">
+        {/* View More Button */}
+        <div className="flex gap-2 mt-6 pt-4 border-t" style={{ borderColor: 'var(--border-default)' }}>
           <button
-            className="px-4 py-2 rounded-md text-sm"
+            className="px-4 py-2 rounded-md text-sm font-medium transition-colors"
             style={{
-              background: 'var(--bg-button-primary)',
-              color: 'var(--text-button-primary)'
+              background: 'var(--bg-button-primary, #059669)',
+              color: 'var(--text-button-primary, #ffffff)'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.background = 'var(--bg-button-primary-hover, #047857)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = 'var(--bg-button-primary, #059669)';
             }}
             onClick={() => {
-              // TODO: Link to Skills Engine UI when available
-              alert('Skills Gap view will be available once Skills Engine UI is integrated.');
+              alert('You are being redirected to the Skills Engine page.');
+              // TODO: When Skills Engine frontend is available, redirect to it
+              // window.open('https://skills-engine-frontend-url', '_blank');
             }}
           >
-            View Skills Gap
+            View More
           </button>
         </div>
       </div>
@@ -246,4 +313,3 @@ function ProfileSkills({ employeeId }) {
 }
 
 export default ProfileSkills;
-
