@@ -22,7 +22,10 @@ function PendingRequestsSection({ companyId, onRequestsLoaded }) {
         console.log('[PendingRequestsSection] Fetching requests for company:', companyId);
         const response = await getCompanyRequests(companyId, 'pending');
         console.log('[PendingRequestsSection] Raw response:', response);
-        // Handle envelope structure: { requester_service: 'directory_service', response: { success: true, requests: [...] } }
+        console.log('[PendingRequestsSection] response.response:', response?.response);
+        console.log('[PendingRequestsSection] response.response.requests:', response?.response?.requests);
+        // Handle envelope structure from formatResponse middleware: { requester_service: 'directory_service', response: { success: true, requests: [...] } }
+        // The middleware wraps the controller response, so we need response.response.requests
         const requestsData = response?.response?.requests || response?.requests || response?.data?.requests || [];
         console.log('[PendingRequestsSection] Parsed requests:', requestsData.length, 'requests');
         console.log('[PendingRequestsSection] Sample request (if any):', requestsData.length > 0 ? requestsData[0] : 'none');

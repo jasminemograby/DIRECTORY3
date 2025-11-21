@@ -123,13 +123,10 @@ class RequestController {
         });
       }
 
-      // Return in envelope format for consistency with other endpoints
+      // Return data directly - formatResponse middleware will wrap it in envelope
       res.status(200).json({
-        requester_service: 'directory_service',
-        response: {
-          success: true,
-          requests
-        }
+        success: true,
+        requests
       });
     } catch (error) {
       console.error('[RequestController] Error fetching company requests:', error);
