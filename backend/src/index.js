@@ -204,7 +204,7 @@ apiRouter.post('/auth/logout', (req, res, next) => {
 });
 
 // Get current user (requires authentication)
-const { authMiddleware } = require('./shared/authMiddleware');
+const { authMiddleware, optionalAuthMiddleware, hrOnlyMiddleware, adminOnlyMiddleware } = require('./shared/authMiddleware');
 apiRouter.get('/auth/me', authMiddleware, (req, res, next) => {
   authController.getCurrentUser(req, res, next);
 });
