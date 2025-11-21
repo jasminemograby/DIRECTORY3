@@ -5,6 +5,7 @@
 -- Use this before testing with a new company CSV
 -- =====================================================
 -- WARNING: This will delete ALL data from the database
+-- NOTE: Admin accounts (directory_admins) are preserved
 -- =====================================================
 
 -- Disable foreign key checks temporarily (PostgreSQL doesn't support this, so we delete in order)
@@ -42,9 +43,9 @@ EXCEPTION WHEN undefined_table THEN
     RAISE NOTICE 'Table audit_logs does not exist, skipping...';
 END $$;
 
--- Reset sequences if any (PostgreSQL auto-increment uses sequences)
--- Note: Most tables use UUID, but if any use SERIAL, reset them here
--- Example: ALTER SEQUENCE table_name_id_seq RESTART WITH 1;
+-- NOTE: directory_admins table is NOT deleted - admin accounts are preserved
+-- If you need to clean admin accounts too, uncomment the line below:
+-- DELETE FROM directory_admins;
 
 COMMIT;
 
@@ -93,4 +94,4 @@ ORDER BY table_name;
 
 -- Expected output: All tables should show 0 remaining_rows
 -- If any table shows > 0, there may be foreign key constraints preventing deletion
-
+-- directory_admins will still have admin accounts (not deleted)
