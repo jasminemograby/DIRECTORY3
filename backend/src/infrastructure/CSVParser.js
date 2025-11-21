@@ -235,6 +235,8 @@ class CSVParser {
       return null;
     }
     const normalized = String(value).trim().toLowerCase();
+    console.log(`[CSVParser] normalizeApprovalPolicy - input: "${value}", normalized: "${normalized}"`);
+    
     // Check for exact matches first
     if (normalized === 'manual') {
       return 'manual';
@@ -249,6 +251,7 @@ class CSVParser {
     if (normalized.startsWith('auto')) {
       return 'auto';
     }
+    console.warn(`[CSVParser] normalizeApprovalPolicy - invalid value: "${value}", returning null`);
     return null; // Invalid value, will default to 'manual' in the parser
   }
 

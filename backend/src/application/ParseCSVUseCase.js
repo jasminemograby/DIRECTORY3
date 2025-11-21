@@ -364,10 +364,21 @@ class ParseCSVUseCase {
     const values = [];
     let paramIndex = 1;
 
-    if (validatedSettings.approval_policy !== undefined) {
-      updates.push(`approval_policy = $${paramIndex++}`);
-      values.push(validatedSettings.approval_policy);
+    // Always validate and set approval_policy (even if not in CSV, use default 'manual')
+    // This ensures we never send an invalid value to the database
+    const approvalPolicy = validatedSettings.approval_policy !== undefined 
+      ? validatedSettings.approval_policy 
+      : this.dbConstraintValidator.validateApprovalPolicy(row.approval_policy || row.learning_path_approval || 'manual');
+    
+    console.log(`[ParseCSVUseCase] Approval policy - raw: ${row.approval_policy || row.learning_path_approval || 'none'}, validated: ${approvalPolicy}`);
+    
+    // Ensure the value is exactly 'manual' or 'auto' (database constraint requirement)
+    if (approvalPolicy !== 'manual' && approvalPolicy !== 'auto') {
+      throw new Error(`Invalid approval_policy value: "${approvalPolicy}". Must be either "manual" or "auto".`);
     }
+    
+    updates.push(`approval_policy = $${paramIndex++}`);
+    values.push(approvalPolicy);
 
     // KPIs is mandatory, always update
     if (validatedSettings.kpis !== undefined) {
