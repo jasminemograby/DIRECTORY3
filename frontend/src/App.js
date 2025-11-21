@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { DesignSystemProvider } from './context/DesignSystemContext';
 import LandingPage from './pages/LandingPage';
@@ -10,8 +10,21 @@ import CompanyProfilePage from './pages/CompanyProfilePage';
 import LoginPage from './pages/LoginPage';
 import EnrichProfilePage from './pages/EnrichProfilePage';
 import EmployeeProfilePage from './pages/EmployeeProfilePage';
+import AdminDashboard from './pages/AdminDashboard';
 import Header from './components/Header';
 import './App.css';
+
+// Conditional Header - Hide for admin routes
+function ConditionalHeader() {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+  
+  if (isAdminRoute) {
+    return null;
+  }
+  
+  return <Header />;
+}
 
 function App() {
   return (
@@ -20,7 +33,7 @@ function App() {
         <AuthProvider>
           <div className="App">
             <div className="bg-animation"></div>
-            <Header />
+            <ConditionalHeader />
             <main className="app-content">
               <Routes>
                 <Route path="/" element={<LandingPage />} />
@@ -31,6 +44,7 @@ function App() {
                 <Route path="/verify/:companyId" element={<CompanyVerificationPage />} />
                 <Route path="/upload/:companyId" element={<CompanyCSVUploadPage />} />
                 <Route path="/company/:companyId" element={<CompanyProfilePage />} />
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
               </Routes>
             </main>
           </div>

@@ -10,7 +10,7 @@ import PendingRequestsSection from './PendingRequestsSection';
 import EnrollmentSection from './EnrollmentSection';
 import PendingProfileApprovals from './PendingProfileApprovals';
 
-function CompanyDashboard({ company, departments, teams, employees, hierarchy, metrics, pendingApprovals = [], onEmployeeClick, companyId }) {
+function CompanyDashboard({ company, departments, teams, employees, hierarchy, metrics, pendingApprovals = [], onEmployeeClick, companyId, isAdminView = false }) {
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'dashboard', 'hierarchy', 'employees', 'enrollment', 'requests', 'approvals'
   const [refreshKey, setRefreshKey] = useState(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
@@ -199,6 +199,7 @@ function CompanyDashboard({ company, departments, teams, employees, hierarchy, m
               companyId={companyId}
               departments={departments}
               teams={teams}
+              isAdminView={isAdminView}
             />
           </div>
         )}
@@ -234,6 +235,7 @@ function CompanyDashboard({ company, departments, teams, employees, hierarchy, m
                 setRefreshKey(prev => prev + 1);
                 window.location.reload();
               }}
+              isAdminView={isAdminView}
             />
           </div>
         )}

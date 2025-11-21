@@ -208,3 +208,18 @@ CREATE INDEX IF NOT EXISTS idx_employee_requests_type ON employee_requests(reque
 -- Add value_proposition column to employees table (AI-generated career progression text)
 ALTER TABLE employees ADD COLUMN IF NOT EXISTS value_proposition TEXT;
 
+-- Directory Admins table (platform-level admins, not tied to any company)
+CREATE TABLE IF NOT EXISTS directory_admins (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    full_name VARCHAR(255) NOT NULL,
+    role VARCHAR(50) DEFAULT 'DIRECTORY_ADMIN' CHECK (role = 'DIRECTORY_ADMIN'),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create index on email for faster lookups
+CREATE INDEX IF NOT EXISTS idx_directory_admins_email ON directory_admins(email);
+

@@ -9,12 +9,13 @@ import api from '../utils/api';
  * @param {string} password - User password
  * @returns {Promise<{success: boolean, token?: string, user?: object, error?: string}>}
  */
-export const login = async (email, password) => {
+export const login = async (email, password, isAdmin = false) => {
   try {
     // Note: api.post automatically wraps in envelope structure via interceptor
     const response = await api.post('/auth/login', {
       email,
-      password
+      password,
+      isAdmin
     });
 
     console.log('[authService] Login response:', JSON.stringify(response.data, null, 2));

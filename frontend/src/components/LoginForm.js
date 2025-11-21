@@ -8,7 +8,8 @@ function LoginForm() {
   const { login, loading } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
+    isAdmin: false
   });
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState(null);
@@ -57,7 +58,7 @@ function LoginForm() {
       return;
     }
 
-    const result = await login(formData.email, formData.password);
+    const result = await login(formData.email, formData.password, formData.isAdmin);
 
     if (!result.success) {
       setSubmitError(result.error || 'Login failed. Please try again.');
@@ -161,6 +162,26 @@ function LoginForm() {
           </p>
         </div>
       )}
+
+      {/* Admin Login Checkbox */}
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          id="isAdmin"
+          name="isAdmin"
+          checked={formData.isAdmin}
+          onChange={(e) => setFormData(prev => ({ ...prev, isAdmin: e.target.checked }))}
+          className="mr-2"
+          disabled={loading}
+        />
+        <label 
+          htmlFor="isAdmin" 
+          className="text-sm"
+          style={{ color: 'var(--text-secondary)' }}
+        >
+          Admin Login
+        </label>
+      </div>
 
       {/* Submit Button */}
       <button

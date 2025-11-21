@@ -2,19 +2,22 @@
 // Handles HTTP requests for authentication
 
 const AuthenticateUserUseCase = require('../application/AuthenticateUserUseCase');
+const AuthenticateAdminUseCase = require('../application/AuthenticateAdminUseCase');
 
 class AuthController {
   constructor() {
     this.authenticateUserUseCase = new AuthenticateUserUseCase();
+    this.authenticateAdminUseCase = new AuthenticateAdminUseCase();
   }
 
   /**
    * Handle login request
    * POST /api/v1/auth/login
+   * Supports both employee and admin login
    */
   async login(req, res, next) {
     try {
-      const { email, password } = req.body;
+      const { email, password, isAdmin } = req.body;
 
       if (!email || !password) {
         return res.status(400).json({
@@ -22,6 +25,25 @@ class AuthController {
         });
       }
 
+      // Check if this is an admin login
+      if (isAdmin === true) {
+        const result = await this.authenticateAdminUseCase.execute(email, password);
+        
+        if (result.success) {
+          return res.status(200).json({
+            success: true,
+            token: result.token,
+            user: result.user
+          });
+        } else {
+          return res.status(401).json({
+            success: false,
+            error: result.error
+          });
+        }
+      }
+
+      // Regular employee login
       const result = await this.authenticateUserUseCase.execute(email, password);
 
       if (result.success) {

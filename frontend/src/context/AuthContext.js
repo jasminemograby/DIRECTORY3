@@ -271,16 +271,23 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Login user
+   * Login user (supports both employee and admin)
    */
-  const login = async (email, password) => {
+  const login = async (email, password, isAdmin = false) => {
     try {
       setLoading(true);
-      const result = await authService.login(email, password);
+      const result = await authService.login(email, password, isAdmin);
 
       if (result.success) {
         setUser(result.user);
         setIsAuthenticated(true);
+
+        // Check if admin login
+        if (result.user.isAdmin || result.user.role === 'DIRECTORY_ADMIN') {
+          // Admin redirects to admin dashboard
+          navigate('/admin/dashboard');
+          return { success: true };
+        }
 
         // Redirect based on user type and profile status
         if (result.user.isHR) {

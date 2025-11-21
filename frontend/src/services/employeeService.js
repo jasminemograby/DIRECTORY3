@@ -38,7 +38,11 @@ export const deleteEmployee = async (companyId, employeeId) => {
 
 export const getEmployee = async (companyId, employeeId) => {
   try {
-    const response = await api.get(`/companies/${companyId}/employees/${employeeId}`);
+    // Admin can access without companyId
+    const url = companyId 
+      ? `/companies/${companyId}/employees/${employeeId}`
+      : `/admin/employees/${employeeId}`;
+    const response = await api.get(url);
     return response.data;
   } catch (error) {
     console.error('Get employee error:', error);

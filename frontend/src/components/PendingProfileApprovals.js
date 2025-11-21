@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 
-function PendingProfileApprovals({ approvals, companyId, onApprovalUpdate }) {
+function PendingProfileApprovals({ approvals, companyId, onApprovalUpdate, isAdminView = false }) {
   const navigate = useNavigate();
   const [processing, setProcessing] = useState({});
   const [error, setError] = useState(null);
@@ -154,7 +154,14 @@ function PendingProfileApprovals({ approvals, companyId, onApprovalUpdate }) {
 
               <div className="flex gap-2 ml-4">
                 <button
-                  onClick={() => navigate(`/employee/${approval.employee_uuid || approval.employee_id}`)}
+                  onClick={() => {
+                    const employeeId = approval.employee_uuid || approval.employee_id;
+                    if (isAdminView) {
+                      navigate(`/employee/${employeeId}?admin=true`);
+                    } else {
+                      navigate(`/employee/${employeeId}`);
+                    }
+                  }}
                   className="px-3 py-1.5 text-sm rounded border transition-colors"
                   style={{
                     borderColor: 'var(--border-default)',
@@ -164,32 +171,36 @@ function PendingProfileApprovals({ approvals, companyId, onApprovalUpdate }) {
                 >
                   View Profile
                 </button>
-                <button
-                  onClick={() => handleApprove(approval.id, approval.employee_uuid || approval.employee_id)}
-                  disabled={processing[approval.id] === 'approving'}
-                  className="px-3 py-1.5 text-sm rounded text-white transition-colors"
-                  style={{
-                    background: processing[approval.id] === 'approving' 
-                      ? 'rgba(34, 197, 94, 0.6)' 
-                      : 'rgb(34, 197, 94)',
-                    cursor: processing[approval.id] === 'approving' ? 'not-allowed' : 'pointer'
-                  }}
-                >
-                  {processing[approval.id] === 'approving' ? 'Approving...' : 'Approve'}
-                </button>
-                <button
-                  onClick={() => handleReject(approval.id, approval.employee_uuid || approval.employee_id)}
-                  disabled={processing[approval.id] === 'rejecting'}
-                  className="px-3 py-1.5 text-sm rounded text-white transition-colors"
-                  style={{
-                    background: processing[approval.id] === 'rejecting' 
-                      ? 'rgba(239, 68, 68, 0.6)' 
-                      : 'rgb(239, 68, 68)',
-                    cursor: processing[approval.id] === 'rejecting' ? 'not-allowed' : 'pointer'
-                  }}
-                >
-                  {processing[approval.id] === 'rejecting' ? 'Rejecting...' : 'Reject'}
-                </button>
+                {!isAdminView && (
+                  <>
+                    <button
+                      onClick={() => handleApprove(approval.id, approval.employee_uuid || approval.employee_id)}
+                      disabled={processing[approval.id] === 'approving'}
+                      className="px-3 py-1.5 text-sm rounded text-white transition-colors"
+                      style={{
+                        background: processing[approval.id] === 'approving' 
+                          ? 'rgba(34, 197, 94, 0.6)' 
+                          : 'rgb(34, 197, 94)',
+                        cursor: processing[approval.id] === 'approving' ? 'not-allowed' : 'pointer'
+                      }}
+                    >
+                      {processing[approval.id] === 'approving' ? 'Approving...' : 'Approve'}
+                    </button>
+                    <button
+                      onClick={() => handleReject(approval.id, approval.employee_uuid || approval.employee_id)}
+                      disabled={processing[approval.id] === 'rejecting'}
+                      className="px-3 py-1.5 text-sm rounded text-white transition-colors"
+                      style={{
+                        background: processing[approval.id] === 'rejecting' 
+                          ? 'rgba(239, 68, 68, 0.6)' 
+                          : 'rgb(239, 68, 68)',
+                        cursor: processing[approval.id] === 'rejecting' ? 'not-allowed' : 'pointer'
+                      }}
+                    >
+                      {processing[approval.id] === 'rejecting' ? 'Rejecting...' : 'Reject'}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>

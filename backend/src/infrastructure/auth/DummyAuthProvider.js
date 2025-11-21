@@ -6,6 +6,7 @@ const AuthProvider = require('./AuthProvider');
 const config = require('../../config');
 const EmployeeRepository = require('../EmployeeRepository');
 const CompanyRepository = require('../CompanyRepository');
+const AdminRepository = require('../AdminRepository');
 
 /**
  * Dummy Authentication Provider
@@ -22,6 +23,7 @@ class DummyAuthProvider extends AuthProvider {
     this.testUsers = config.auth.dummy.testUsers;
     this.employeeRepository = new EmployeeRepository();
     this.companyRepository = new CompanyRepository();
+    this.adminRepository = new AdminRepository();
   }
 
   /**
@@ -71,6 +73,11 @@ class DummyAuthProvider extends AuthProvider {
         valid: false,
         error: 'Invalid token format'
       };
+    }
+
+    // Check if this is an admin token: dummy-token-admin-{adminId}-{email}-{timestamp}
+    if (token.startsWith('dummy-token-admin-')) {
+      return await this.validateAdminToken(token);
     }
 
     // Token format: dummy-token-{employeeId}-{email}-{timestamp}
@@ -298,6 +305,107 @@ class DummyAuthProvider extends AuthProvider {
     }
 
     return null;
+  }
+
+  /**
+   * Validate admin token
+   * @param {string} token - Admin token (format: dummy-token-admin-{adminId}-{email}-{timestamp})
+   * @returns {Promise<{valid: boolean, user?: object, error?: string}>}
+   */
+  async validateAdminToken(token) {
+    try {
+      const parts = token.split('-');
+      // Format: dummy-token-admin-{uuid}-{email}-{timestamp}
+      // parts[0] = "dummy", parts[1] = "token", parts[2] = "admin", parts[3-7] = UUID parts, parts[8] = email, parts[9] = timestamp
+      
+      // Find the email part (contains '@')
+      let emailIndex = -1;
+      for (let i = 3; i < parts.length; i++) {
+        if (parts[i].includes('@')) {
+          emailIndex = i;
+          break;
+        }
+      }
+      
+      if (emailIndex < 4) {
+        return {
+          valid: false,
+          error: 'Invalid admin token format'
+        };
+      }
+      
+      const uuidParts = parts.slice(3, emailIndex);
+      const adminId = uuidParts.join('-');
+      const email = parts[emailIndex];
+      
+      // Validate UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(adminId)) {
+        // Try email lookup as fallback
+        const admin = await this.adminRepository.findByEmail(email.toLowerCase());
+        if (admin) {
+          return {
+            valid: true,
+            user: {
+              id: admin.id,
+              email: admin.email,
+              fullName: admin.full_name,
+              role: 'DIRECTORY_ADMIN',
+              isAdmin: true,
+              companyId: null
+            }
+          };
+        }
+        return {
+          valid: false,
+          error: 'Invalid admin token format'
+        };
+      }
+      
+      // Look up admin from database
+      const admin = await this.adminRepository.findById(adminId);
+      
+      if (!admin) {
+        // Fallback: try email lookup
+        const adminByEmail = await this.adminRepository.findByEmail(email.toLowerCase());
+        if (adminByEmail) {
+          return {
+            valid: true,
+            user: {
+              id: adminByEmail.id,
+              email: adminByEmail.email,
+              fullName: adminByEmail.full_name,
+              role: 'DIRECTORY_ADMIN',
+              isAdmin: true,
+              companyId: null
+            }
+          };
+        }
+        
+        return {
+          valid: false,
+          error: 'Admin not found'
+        };
+      }
+      
+      return {
+        valid: true,
+        user: {
+          id: admin.id,
+          email: admin.email,
+          fullName: admin.full_name,
+          role: 'DIRECTORY_ADMIN',
+          isAdmin: true,
+          companyId: null
+        }
+      };
+    } catch (error) {
+      console.error('[DummyAuthProvider] Error validating admin token:', error);
+      return {
+        valid: false,
+        error: 'Failed to validate admin token: ' + (error.message || 'Unknown error')
+      };
+    }
   }
 }
 

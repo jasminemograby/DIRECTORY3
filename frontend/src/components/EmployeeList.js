@@ -6,7 +6,7 @@ import AddEmployeeForm from './AddEmployeeForm';
 import EditEmployeeForm from './EditEmployeeForm';
 import CSVUploadForm from './CSVUploadForm';
 
-function EmployeeList({ employees, onEmployeeClick, companyId, departments, teams }) {
+function EmployeeList({ employees, onEmployeeClick, companyId, departments, teams, isAdminView = false }) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
   const [showCSVUpload, setShowCSVUpload] = useState(false);
@@ -211,12 +211,14 @@ function EmployeeList({ employees, onEmployeeClick, companyId, departments, team
           <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
             All Employees (0)
           </h3>
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 transition-colors"
-          >
-            + Add Employee
-          </button>
+          {!isAdminView && (
+            <button
+              onClick={() => setShowAddForm(true)}
+              className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 transition-colors"
+            >
+              + Add Employee
+            </button>
+          )}
         </div>
         <div className="p-6 rounded-lg text-center" style={{ background: 'var(--bg-card)' }}>
           <p style={{ color: 'var(--text-secondary)' }}>No employees found</p>
@@ -232,67 +234,69 @@ function EmployeeList({ employees, onEmployeeClick, companyId, departments, team
           All Employees ({filteredAndSortedEmployees.length} of {employees?.length || 0})
         </h3>
         
-        {/* Add Employee Button with Dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => setShowAddMenu(!showAddMenu)}
-            className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 transition-colors flex items-center gap-2"
-            style={{
-              background: 'var(--gradient-primary, linear-gradient(135deg, #059669, #047857))',
-              color: 'var(--text-inverse, #ffffff)'
-            }}
-          >
-            + Add Employee
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          
-          {showAddMenu && (
-            <>
-              <div 
-                className="fixed inset-0 z-10" 
-                onClick={() => setShowAddMenu(false)}
-              />
-              <div 
-                className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg z-20"
-                style={{
-                  background: 'var(--bg-card, #ffffff)',
-                  border: '1px solid var(--border-default, #e2e8f0)',
-                  boxShadow: 'var(--shadow-card, 0 1px 3px rgba(0, 0, 0, 0.1))'
-                }}
-              >
-                <button
-                  onClick={() => {
-                    setShowAddForm(true);
-                    setShowAddMenu(false);
-                  }}
-                  className="w-full text-left px-4 py-2 hover:bg-opacity-50 transition-colors"
-                  style={{ 
-                    color: 'var(--text-primary)',
-                    background: 'var(--bg-primary)'
+        {/* Add Employee Button with Dropdown - Hidden in admin view */}
+        {!isAdminView && (
+          <div className="relative">
+            <button
+              onClick={() => setShowAddMenu(!showAddMenu)}
+              className="px-4 py-2 bg-teal-600 text-white rounded hover:bg-teal-700 transition-colors flex items-center gap-2"
+              style={{
+                background: 'var(--gradient-primary, linear-gradient(135deg, #059669, #047857))',
+                color: 'var(--text-inverse, #ffffff)'
+              }}
+            >
+              + Add Employee
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {showAddMenu && (
+              <>
+                <div 
+                  className="fixed inset-0 z-10" 
+                  onClick={() => setShowAddMenu(false)}
+                />
+                <div 
+                  className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg z-20"
+                  style={{
+                    background: 'var(--bg-card, #ffffff)',
+                    border: '1px solid var(--border-default, #e2e8f0)',
+                    boxShadow: 'var(--shadow-card, 0 1px 3px rgba(0, 0, 0, 0.1))'
                   }}
                 >
-                  Manual Entry
-                </button>
-                <button
-                  onClick={() => {
-                    setShowCSVUpload(true);
-                    setShowAddMenu(false);
-                  }}
-                  className="w-full text-left px-4 py-2 hover:bg-opacity-50 transition-colors border-t"
-                  style={{ 
-                    color: 'var(--text-primary)',
-                    background: 'var(--bg-primary)',
-                    borderColor: 'var(--border-default)'
-                  }}
-                >
-                  Upload CSV
-                </button>
-              </div>
-            </>
-          )}
-        </div>
+                  <button
+                    onClick={() => {
+                      setShowAddForm(true);
+                      setShowAddMenu(false);
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-opacity-50 transition-colors"
+                    style={{ 
+                      color: 'var(--text-primary)',
+                      background: 'var(--bg-primary)'
+                    }}
+                  >
+                    Manual Entry
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowCSVUpload(true);
+                      setShowAddMenu(false);
+                    }}
+                    className="w-full text-left px-4 py-2 hover:bg-opacity-50 transition-colors border-t"
+                    style={{ 
+                      color: 'var(--text-primary)',
+                      background: 'var(--bg-primary)',
+                      borderColor: 'var(--border-default)'
+                    }}
+                  >
+                    Upload CSV
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Search, Filter, and Sort Controls */}
@@ -481,18 +485,22 @@ function EmployeeList({ employees, onEmployeeClick, companyId, departments, team
                     >
                       View
                     </button>
-                    <button
-                      onClick={() => setEditingEmployee(employee)}
-                      className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteEmployee(employee.id)}
-                      className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-                    >
-                      Delete
-                    </button>
+                    {!isAdminView && (
+                      <>
+                        <button
+                          onClick={() => setEditingEmployee(employee)}
+                          className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteEmployee(employee.id)}
+                          className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                        >
+                          Delete
+                        </button>
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>

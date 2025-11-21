@@ -50,10 +50,10 @@ function EmployeeProfilePage() {
       }
     };
 
-    if (employeeId && user?.companyId) {
+    if (employeeId && (user?.companyId || isAdminView)) {
       fetchEmployee();
     }
-  }, [employeeId, user?.companyId]);
+  }, [employeeId, user?.companyId, isAdminView]);
 
   // Parse project summaries if stored as JSON string
   const parseProjectSummaries = (summaries) => {
@@ -114,9 +114,14 @@ function EmployeeProfilePage() {
                    (employee.roles.includes('DEPARTMENT_MANAGER') || employee.roles.includes('TEAM_MANAGER'));
   const isApproved = profileStatus === 'approved';
   
+  // Check if this is an admin view
+  const isAdminView = searchParams.get('admin') === 'true' || 
+                     user?.isAdmin || 
+                     user?.role === 'DIRECTORY_ADMIN';
+  
   // Determine if current user is viewing their own profile or someone else's
-  const isOwnProfile = user?.id === employeeId;
-  const isViewOnly = !isOwnProfile; // Read-only mode when viewing someone else's profile
+  const isOwnProfile = user?.id === employeeId && !isAdminView;
+  const isViewOnly = !isOwnProfile || isAdminView; // Read-only mode when viewing someone else's profile or when admin
   
   if (process.env.NODE_ENV === 'development') {
     console.log('[EmployeeProfilePage] Management Section Debug:', {

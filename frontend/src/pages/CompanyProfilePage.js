@@ -2,16 +2,24 @@
 // Displays company overview with hierarchy, employees, dashboard, and management options
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import CompanyDashboard from '../components/CompanyDashboard';
 import { getCompanyProfile } from '../services/companyProfileService';
 
 function CompanyProfilePage() {
   const { companyId } = useParams();
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [profileData, setProfileData] = useState(null);
+  
+  // Check if this is an admin view (via query param or user role)
+  const isAdminView = searchParams.get('admin') === 'true' || 
+                     user?.isAdmin || 
+                     user?.role === 'DIRECTORY_ADMIN';
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -52,10 +60,12 @@ function CompanyProfilePage() {
   }, [companyId]);
 
   const handleEmployeeClick = (employee) => {
-    // Navigate to employee profile page (F010 - will be fully implemented after profile enrichment)
-    console.log('Navigate to employee profile:', employee.id);
-    // For now, just log - will navigate when employee profile page is ready
-    // navigate(`/employee/${employee.id}`);
+    // Navigate to employee profile page
+    if (isAdminView) {
+      navigate(`/employee/${employee.id}?admin=true`);
+    } else {
+      navigate(`/employee/${employee.id}`);
+    }
   };
 
   if (loading) {
@@ -190,10 +200,9 @@ function CompanyProfilePage() {
           hierarchy={profileData.hierarchy}
           metrics={profileData.metrics}
           pendingApprovals={profileData.pending_approvals || []}
-          onEmployeeClick={(employee) => {
-            navigate(`/employee/${employee.id}`);
-          }}
+          onEmployeeClick={handleEmployeeClick}
           companyId={companyId}
+          isAdminView={isAdminView}
         />
       </div>
     </div>

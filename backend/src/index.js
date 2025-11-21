@@ -26,6 +26,7 @@ const TrainerController = require('./presentation/TrainerController');
 const EmployeeProfileApprovalController = require('./presentation/EmployeeProfileApprovalController');
 const RequestController = require('./presentation/RequestController');
 const UniversalEndpointController = require('./presentation/UniversalEndpointController');
+const AdminController = require('./presentation/AdminController');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -145,7 +146,7 @@ app.get('/assets/:logo', (req, res) => {
 let companyRegistrationController, companyVerificationController, csvUploadController;
 let companyProfileController, employeeController, authController, oauthController;
 let enrichmentController, approvalController, trainerController, requestController;
-let universalEndpointController;
+let universalEndpointController, adminController;
 
 const initController = (name, initFn) => {
   try {
@@ -173,6 +174,7 @@ approvalController = initController('EmployeeProfileApprovalController', () => n
 trainerController = initController('TrainerController', () => new TrainerController());
 requestController = initController('RequestController', () => new RequestController());
 universalEndpointController = initController('UniversalEndpointController', () => new UniversalEndpointController());
+adminController = initController('AdminController', () => new AdminController());
 console.log('[Init] Controller initialization complete');
 
 // API Routes
@@ -344,6 +346,34 @@ apiRouter.put('/employees/:employeeId/trainer-settings', authMiddleware, (req, r
 
 apiRouter.get('/employees/:employeeId/courses-taught', authMiddleware, (req, res, next) => {
   trainerController.getCoursesTaught(req, res, next);
+});
+
+// Admin routes (platform-level, bypass company scoping)
+apiRouter.get('/admin/companies', authMiddleware, (req, res, next) => {
+  try {
+    checkController(adminController, 'AdminController');
+    adminController.getAllCompanies(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
+
+apiRouter.get('/admin/companies/:companyId', authMiddleware, (req, res, next) => {
+  try {
+    checkController(adminController, 'AdminController');
+    adminController.getCompany(req, res, next);
+  } catch (error) {
+    next(error);
+  }
+});
+
+apiRouter.get('/admin/employees/:employeeId', authMiddleware, (req, res, next) => {
+  try {
+    checkController(adminController, 'AdminController');
+    adminController.getEmployee(req, res, next);
+  } catch (error) {
+    next(error);
+  }
 });
 
 // Universal Endpoint for other microservices (no auth required - internal service-to-service)
