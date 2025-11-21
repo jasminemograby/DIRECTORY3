@@ -40,11 +40,26 @@ function PendingRequestsSection({ companyId, onRequestsLoaded, isAdminView = fal
       } catch (err) {
         console.error('[PendingRequestsSection] Error fetching requests:', err);
         console.error('[PendingRequestsSection] Error details:', err.response?.data);
-        if (isMounted) {
-          setError('Failed to load pending requests.');
-          setRequests([]);
-          if (onRequestsLoaded) {
-            onRequestsLoaded(0);
+        
+        // Handle 401 Unauthorized gracefully - treat as "no requests" for new companies
+        // This prevents showing errors when viewing company profile after CSV upload without login
+        if (err.response?.status === 401) {
+          console.log('[PendingRequestsSection] 401 Unauthorized - treating as no requests (new company or no auth)');
+          if (isMounted) {
+            setError(null); // Don't show error for 401
+            setRequests([]); // Empty requests array
+            if (onRequestsLoaded) {
+              onRequestsLoaded(0);
+            }
+          }
+        } else {
+          // For other errors (500, network, etc.), show error message
+          if (isMounted) {
+            setError('Failed to load pending requests.');
+            setRequests([]);
+            if (onRequestsLoaded) {
+              onRequestsLoaded(0);
+            }
           }
         }
       } finally {
