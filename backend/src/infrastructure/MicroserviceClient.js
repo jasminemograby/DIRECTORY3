@@ -75,6 +75,50 @@ class MicroserviceClient {
           console.log(`[MicroserviceClient] ✅ Using mock data for ${microserviceKey}/${operation}`);
           return mockData;
         }
+        
+        // Hardcoded fallback for skills-engine if file-based mock data not found
+        if (microserviceKey === 'skills-engine' && operation === 'normalize-skills') {
+          console.log(`[MicroserviceClient] Using hardcoded fallback mock data for skills-engine/normalize-skills`);
+          return {
+            user_id: 1024,
+            competencies: [
+              {
+                name: "Software Development",
+                nested_competencies: [
+                  {
+                    name: "Frontend Development",
+                    nested_competencies: [
+                      {
+                        name: "JavaScript Frameworks",
+                        skills: [
+                          { name: "React", verified: false },
+                          { name: "JavaScript", verified: false },
+                          { name: "TypeScript", verified: false }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    name: "Backend Development",
+                    nested_competencies: [
+                      {
+                        name: "Server Technologies",
+                        skills: [
+                          { name: "Node.js", verified: false },
+                          { name: "Python", verified: false }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ],
+            relevance_score: 75.5,
+            gap: {
+              missing_skills: ["Docker", "Kubernetes", "AWS"]
+            }
+          };
+        }
       }
 
       // Return empty response template if no mock data available

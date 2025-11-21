@@ -25,10 +25,16 @@ class MockDataService {
       }
       
       if (!mockDataLoaded) {
-        throw new Error('Mock data file not found in any expected location');
+        console.warn('[MockDataService] Mock data file not found in any expected location');
+        console.warn('[MockDataService] Tried paths:', possiblePaths);
+        this.mockData = {};
+      } else {
+        console.log('[MockDataService] ✅ Mock data file loaded successfully');
+        console.log('[MockDataService] Available microservices:', Object.keys(this.mockData));
       }
     } catch (error) {
-      console.warn('[MockDataService] Mock data file not found, using default mocks');
+      console.warn('[MockDataService] Error loading mock data file:', error.message);
+      console.warn('[MockDataService] Using empty mock data object');
       this.mockData = {};
     }
   }
@@ -84,9 +90,21 @@ class MockDataService {
    * @returns {Object|null} Mock data or null if not found
    */
   getMockData(microservice, operation) {
-    if (!this.mockData[microservice] || !this.mockData[microservice][operation]) {
+    console.log(`[MockDataService] Looking for mock data: ${microservice}/${operation}`);
+    console.log(`[MockDataService] Available microservices:`, Object.keys(this.mockData || {}));
+    
+    if (!this.mockData || !this.mockData[microservice]) {
+      console.warn(`[MockDataService] Microservice '${microservice}' not found in mock data`);
       return null;
     }
+    
+    if (!this.mockData[microservice][operation]) {
+      console.warn(`[MockDataService] Operation '${operation}' not found for microservice '${microservice}'`);
+      console.log(`[MockDataService] Available operations for ${microservice}:`, Object.keys(this.mockData[microservice]));
+      return null;
+    }
+    
+    console.log(`[MockDataService] ✅ Found mock data for ${microservice}/${operation}`);
     return this.mockData[microservice][operation];
   }
 }

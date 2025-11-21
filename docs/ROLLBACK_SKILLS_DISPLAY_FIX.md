@@ -8,9 +8,19 @@
 
 ## What Was Changed
 
-### File: `frontend/src/components/ProfileSkills.js`
+### File 1: `frontend/src/components/ProfileSkills.js`
 
-**Line 21-23**: Updated data extraction logic to properly handle response envelope structure
+**Line 21-27**: Updated data extraction logic to properly handle response envelope structure
+
+### File 2: `backend/src/infrastructure/MockDataService.js`
+
+**Lines 27-33**: Added better logging to debug mock data loading issues
+
+**Lines 86-91**: Added detailed logging in `getMockData()` method
+
+### File 3: `backend/src/infrastructure/MicroserviceClient.js`
+
+**Lines 78-103**: Added hardcoded fallback mock data for skills-engine when file-based mock data is not found
 
 **Before:**
 ```javascript
@@ -37,7 +47,7 @@ setSkillsData(skills);
 
 **File**: `frontend/src/components/ProfileSkills.js`
 
-**Change lines 21-23 back to:**
+**Change lines 21-27 back to:**
 ```javascript
 const response = await getEmployeeSkills(user.companyId, employeeId);
 const skills = response?.skills || response?.response?.skills || response;
@@ -45,6 +55,53 @@ setSkillsData(skills);
 ```
 
 **Remove the console.log statements** (lines added for debugging)
+
+### Step 2: Revert MockDataService.js
+
+**File**: `backend/src/infrastructure/MockDataService.js`
+
+**Revert lines 27-33** to:
+```javascript
+if (!mockDataLoaded) {
+  throw new Error('Mock data file not found in any expected location');
+}
+} catch (error) {
+  console.warn('[MockDataService] Mock data file not found, using default mocks');
+  this.mockData = {};
+}
+```
+
+**Revert lines 86-91** to:
+```javascript
+getMockData(microservice, operation) {
+  if (!this.mockData[microservice] || !this.mockData[microservice][operation]) {
+    return null;
+  }
+  return this.mockData[microservice][operation];
+}
+```
+
+### Step 3: Revert MicroserviceClient.js
+
+**File**: `backend/src/infrastructure/MicroserviceClient.js`
+
+**Remove the hardcoded fallback** (lines 78-103) and revert to:
+```javascript
+// Fallback to mock data
+if (operation) {
+  // Convert camelCase to kebab-case (e.g., "skillsEngine" -> "skills-engine")
+  const microserviceKey = microserviceName.replace(/([A-Z])/g, '-$1').toLowerCase();
+  const mockData = this.mockDataService.getMockData(microserviceKey, operation);
+  if (mockData) {
+    console.log(`[MicroserviceClient] ✅ Using mock data for ${microserviceKey}/${operation}`);
+    return mockData;
+  }
+}
+
+// Return empty response template if no mock data available
+console.warn(`[MicroserviceClient] No mock data found, returning empty response template`);
+return responseTemplate || {};
+```
 
 ---
 
