@@ -108,7 +108,7 @@ class EmployeeRequestRepository {
       FROM employee_requests er
       LEFT JOIN employees e ON er.employee_id = e.id
       LEFT JOIN employees reviewer ON er.reviewed_by = reviewer.id
-      WHERE er.company_id = $1
+      WHERE er.company_id::text = $1::text
     `;
 
     const values = [companyId];
@@ -122,16 +122,23 @@ class EmployeeRequestRepository {
     try {
       console.log(`[EmployeeRequestRepository] Query: ${query}`);
       console.log(`[EmployeeRequestRepository] Values:`, values);
+      console.log(`[EmployeeRequestRepository] Company ID type: ${typeof companyId}, value: ${companyId}`);
       const result = await this.pool.query(query, values);
       console.log(`[EmployeeRequestRepository] ✅ Found ${result.rows.length} requests for company ${companyId} with status ${status || 'all'}`);
       if (result.rows.length > 0) {
         console.log(`[EmployeeRequestRepository] Sample request:`, {
           id: result.rows[0].id,
           company_id: result.rows[0].company_id,
+          company_id_type: typeof result.rows[0].company_id,
           employee_id: result.rows[0].employee_id,
           status: result.rows[0].status,
           title: result.rows[0].title
         });
+      } else {
+        console.log(`[EmployeeRequestRepository] ⚠️ No requests found. Checking if any requests exist in table...`);
+        const checkQuery = 'SELECT COUNT(*) as total, COUNT(CASE WHEN status = $1 THEN 1 END) as pending_count FROM employee_requests WHERE company_id::text = $2::text';
+        const checkResult = await this.pool.query(checkQuery, [status || 'pending', companyId]);
+        console.log(`[EmployeeRequestRepository] Total requests for company: ${checkResult.rows[0].total}, Pending: ${checkResult.rows[0].pending_count}`);
       }
       return result.rows;
     } catch (error) {

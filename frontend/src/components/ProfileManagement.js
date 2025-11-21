@@ -21,11 +21,16 @@ function ProfileManagement({ employeeId }) {
       try {
         setLoading(true);
         setError(null);
+        console.log('[ProfileManagement] Fetching hierarchy for employee:', employeeId, 'company:', user.companyId);
         const response = await getManagerHierarchy(user.companyId, employeeId);
-        const hierarchyData = response?.hierarchy || response?.response?.hierarchy || response;
+        console.log('[ProfileManagement] Raw response:', response);
+        // Handle envelope structure: { requester_service: 'directory_service', response: { success: true, hierarchy: {...} } }
+        const hierarchyData = response?.response?.hierarchy || response?.hierarchy || response;
+        console.log('[ProfileManagement] Parsed hierarchy:', hierarchyData);
         setHierarchy(hierarchyData);
       } catch (err) {
         console.error('[ProfileManagement] Error fetching hierarchy:', err);
+        console.error('[ProfileManagement] Error details:', err.response?.data);
         setError('Failed to load management hierarchy.');
       } finally {
         setLoading(false);

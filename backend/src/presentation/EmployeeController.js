@@ -314,30 +314,58 @@ class EmployeeController {
     try {
       const { id: companyId, employeeId } = req.params;
 
+      console.log(`[EmployeeController] Fetching manager hierarchy for employee ${employeeId} in company ${companyId}`);
+
       // Verify employee exists and belongs to company
       const employee = await this.employeeRepository.findById(employeeId);
-      if (!employee || employee.company_id !== companyId) {
+      if (!employee) {
+        console.log(`[EmployeeController] Employee ${employeeId} not found`);
         return res.status(404).json({
-          error: 'Employee not found'
+          requester_service: 'directory_service',
+          response: {
+            error: 'Employee not found'
+          }
         });
       }
 
-      const hierarchy = await this.getManagerHierarchyUseCase.execute(employeeId);
+      // Compare company_id as strings to handle UUID type differences
+      if (String(employee.company_id) !== String(companyId)) {
+        console.log(`[EmployeeController] Employee ${employeeId} does not belong to company ${companyId}. Employee company: ${employee.company_id}`);
+        return res.status(404).json({
+          requester_service: 'directory_service',
+          response: {
+            error: 'Employee not found'
+          }
+        });
+      }
+
+      const hierarchy = await this.getManagerHierarchyUseCase.execute(employeeId, companyId);
 
       if (!hierarchy) {
+        console.log(`[EmployeeController] Employee ${employeeId} is not a manager or has no managed teams/employees`);
         return res.status(404).json({
-          error: 'Employee is not a manager or has no managed teams/employees'
+          requester_service: 'directory_service',
+          response: {
+            error: 'Employee is not a manager or has no managed teams/employees'
+          }
         });
       }
 
+      console.log(`[EmployeeController] ✅ Returning hierarchy for manager ${employeeId}`);
       res.status(200).json({
-        success: true,
-        hierarchy: hierarchy
+        requester_service: 'directory_service',
+        response: {
+          success: true,
+          hierarchy: hierarchy
+        }
       });
     } catch (error) {
       console.error('[EmployeeController] Error fetching manager hierarchy:', error);
       res.status(500).json({
-        error: error.message || 'An error occurred while fetching manager hierarchy'
+        requester_service: 'directory_service',
+        response: {
+          error: error.message || 'An error occurred while fetching manager hierarchy'
+        }
       });
     }
   }

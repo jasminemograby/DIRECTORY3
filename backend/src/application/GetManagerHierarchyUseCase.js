@@ -15,9 +15,10 @@ class GetManagerHierarchyUseCase {
   /**
    * Get manager hierarchy (teams and employees they manage)
    * @param {string} managerId - Manager employee UUID
+   * @param {string} companyId - Company UUID (for validation)
    * @returns {Promise<Object|null>} Hierarchy structure or null if not a manager
    */
-  async execute(managerId) {
+  async execute(managerId, companyId) {
     // Get employee and their roles
     const employee = await this.employeeRepository.findById(managerId);
     if (!employee) {
