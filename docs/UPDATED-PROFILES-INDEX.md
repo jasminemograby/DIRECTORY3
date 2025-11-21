@@ -46,7 +46,28 @@
 - Need to check trainer features
 - Need to understand approval status impact
 
-### 3. Features and Flows Documentation
+### 3. Decision Maker Profile Documentation
+**File**: `DECISION-MAKER-PROFILE.md`
+
+**Contents**:
+- Complete Decision Maker profile features and functionality
+- Learning Paths Approvals section details
+- Role definition and assignment
+- Profile structure and section visibility
+- View-only mode behavior
+- Data flow and API endpoints
+- Component files reference
+- Testing checklist
+- Future enhancements
+
+**Use When**:
+- Decision Maker profile features need verification
+- Learning Paths Approvals section breaks
+- Need to understand Decision Maker role permissions
+- Need to test approval workflow
+- Need to check section visibility conditions
+
+### 4. Features and Flows Documentation
 **File**: `UPDATED-PROFILES-FEATURES-AND-FLOWS.md`
 
 **Contents**:
