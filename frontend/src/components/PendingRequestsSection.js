@@ -8,6 +8,7 @@ function PendingRequestsSection({ companyId, onRequestsLoaded }) {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -24,6 +25,7 @@ function PendingRequestsSection({ companyId, onRequestsLoaded }) {
         // Handle envelope structure: { requester_service: 'directory_service', response: { success: true, requests: [...] } }
         const requestsData = response?.response?.requests || response?.requests || response?.data?.requests || [];
         console.log('[PendingRequestsSection] Parsed requests:', requestsData.length, 'requests');
+        console.log('[PendingRequestsSection] Sample request (if any):', requestsData.length > 0 ? requestsData[0] : 'none');
         
         if (isMounted) {
           setRequests(requestsData);
@@ -34,6 +36,7 @@ function PendingRequestsSection({ companyId, onRequestsLoaded }) {
         }
       } catch (err) {
         console.error('[PendingRequestsSection] Error fetching requests:', err);
+        console.error('[PendingRequestsSection] Error details:', err.response?.data);
         if (isMounted) {
           setError('Failed to load pending requests.');
           setRequests([]);
@@ -53,7 +56,31 @@ function PendingRequestsSection({ companyId, onRequestsLoaded }) {
     return () => {
       isMounted = false;
     };
-  }, [companyId, onRequestsLoaded]);
+  }, [companyId, onRequestsLoaded, refreshTrigger]);
+
+  // Refresh when window regains focus (user might have submitted request in another tab)
+  React.useEffect(() => {
+    const handleFocus = () => {
+      console.log('[PendingRequestsSection] Window focus detected, refreshing requests');
+      setRefreshTrigger(prev => prev + 1);
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
+
+  // Expose refresh function via window for external triggers (if needed)
+  React.useEffect(() => {
+    window.refreshPendingRequests = () => {
+      console.log('[PendingRequestsSection] External refresh triggered');
+      setRefreshTrigger(prev => prev + 1);
+    };
+    return () => {
+      delete window.refreshPendingRequests;
+    };
+  }, []);
 
   const handleApprove = (requestId) => {
     console.log('Approve request:', requestId);

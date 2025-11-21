@@ -103,11 +103,25 @@ class RequestController {
       const { id: companyId } = req.params;
       const { status } = req.query;
 
-      console.log(`[RequestController] Fetching company requests for company ${companyId} with status: ${status || 'all'}`);
+      console.log(`[RequestController] Fetching company requests for company ${companyId} (type: ${typeof companyId}) with status: ${status || 'all'}`);
+      console.log(`[RequestController] User making request:`, req.user?.email, req.user?.id);
 
       const requests = await this.requestRepository.findByCompanyId(companyId, status || null);
 
       console.log(`[RequestController] ✅ Found ${requests.length} requests for company ${companyId}`);
+      if (requests.length > 0) {
+        console.log(`[RequestController] Sample request details:`, {
+          id: requests[0].id,
+          employee_id: requests[0].employee_id,
+          employee_name: requests[0].employee_name,
+          company_id: requests[0].company_id,
+          company_id_type: typeof requests[0].company_id,
+          request_type: requests[0].request_type,
+          status: requests[0].status,
+          title: requests[0].title,
+          requested_at: requests[0].requested_at
+        });
+      }
 
       // Return in envelope format for consistency with other endpoints
       res.status(200).json({
@@ -119,8 +133,15 @@ class RequestController {
       });
     } catch (error) {
       console.error('[RequestController] Error fetching company requests:', error);
+      console.error('[RequestController] Error stack:', error.stack);
       const userFriendlyMessage = ErrorTranslator.translateError(error);
-      res.status(500).json({
+      
+      let statusCode = 500;
+      if (error.message.includes('not found')) {
+        statusCode = 404;
+      }
+
+      res.status(statusCode).json({
         requester_service: 'directory_service',
         response: {
           error: userFriendlyMessage || 'An error occurred while fetching requests'

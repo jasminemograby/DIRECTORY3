@@ -90,7 +90,11 @@ function CompanyDashboard({ company, departments, teams, employees, hierarchy, m
           Enroll to Courses
         </button>
         <button
-          onClick={() => setActiveTab('requests')}
+          onClick={() => {
+            setActiveTab('requests');
+            // Force refresh of pending requests when tab is clicked
+            setRefreshKey(prev => prev + 1);
+          }}
           className={`px-4 py-2 font-medium transition-colors relative ${
             activeTab === 'requests'
               ? 'border-b-2 border-teal-600 text-teal-600'
