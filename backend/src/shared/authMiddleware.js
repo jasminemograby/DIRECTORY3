@@ -138,10 +138,38 @@ const hrOnlyMiddleware = (req, res, next) => {
   next();
 };
 
+/**
+ * Admin-only Middleware
+ * Ensures user is a platform-level admin before allowing access
+ * Must be used after authMiddleware
+ */
+const adminOnlyMiddleware = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      requester_service: 'directory_service',
+      response: {
+        error: 'Authentication required'
+      }
+    });
+  }
+
+  if (!req.user.isAdmin && req.user.role !== 'DIRECTORY_ADMIN') {
+    return res.status(403).json({
+      requester_service: 'directory_service',
+      response: {
+        error: 'Access denied. Admin privileges required.'
+      }
+    });
+  }
+
+  next();
+};
+
 module.exports = {
   authMiddleware,
   optionalAuthMiddleware,
   hrOnlyMiddleware,
+  adminOnlyMiddleware,
   resetAuthProvider
 };
 

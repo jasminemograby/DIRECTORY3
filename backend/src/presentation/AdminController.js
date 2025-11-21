@@ -14,6 +14,9 @@ class AdminController {
    */
   async getAllCompanies(req, res, next) {
     try {
+      console.log('[AdminController] getAllCompanies called');
+      console.log('[AdminController] User:', req.user?.email, 'isAdmin:', req.user?.isAdmin);
+      
       const query = `
         SELECT 
           id,
@@ -28,6 +31,7 @@ class AdminController {
       `;
       
       const result = await this.companyRepository.pool.query(query);
+      console.log('[AdminController] Found companies:', result.rows.length);
       
       const companies = result.rows.map(company => ({
         id: company.id,
@@ -38,6 +42,7 @@ class AdminController {
         created_date: company.created_at
       }));
 
+      console.log('[AdminController] Returning companies:', companies.length);
       return res.status(200).json({
         requester_service: 'directory_service',
         response: {

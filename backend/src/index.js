@@ -349,7 +349,7 @@ apiRouter.get('/employees/:employeeId/courses-taught', authMiddleware, (req, res
 });
 
 // Admin routes (platform-level, bypass company scoping)
-apiRouter.get('/admin/companies', authMiddleware, (req, res, next) => {
+apiRouter.get('/admin/companies', authMiddleware, adminOnlyMiddleware, (req, res, next) => {
   try {
     checkController(adminController, 'AdminController');
     adminController.getAllCompanies(req, res, next);
@@ -358,7 +358,7 @@ apiRouter.get('/admin/companies', authMiddleware, (req, res, next) => {
   }
 });
 
-apiRouter.get('/admin/companies/:companyId', authMiddleware, (req, res, next) => {
+apiRouter.get('/admin/companies/:companyId', authMiddleware, adminOnlyMiddleware, (req, res, next) => {
   try {
     checkController(adminController, 'AdminController');
     adminController.getCompany(req, res, next);
@@ -367,7 +367,7 @@ apiRouter.get('/admin/companies/:companyId', authMiddleware, (req, res, next) =>
   }
 });
 
-apiRouter.get('/admin/employees/:employeeId', authMiddleware, (req, res, next) => {
+apiRouter.get('/admin/employees/:employeeId', authMiddleware, adminOnlyMiddleware, (req, res, next) => {
   try {
     checkController(adminController, 'AdminController');
     adminController.getEmployee(req, res, next);

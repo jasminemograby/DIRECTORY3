@@ -20,11 +20,16 @@ function AdminDashboard() {
       try {
         setLoading(true);
         setError(null);
+        console.log('[AdminDashboard] Fetching companies...');
         const response = await getAllCompanies();
+        console.log('[AdminDashboard] Response:', response);
         const companiesData = response?.response?.companies || response?.companies || [];
+        console.log('[AdminDashboard] Companies data:', companiesData);
+        console.log('[AdminDashboard] Companies count:', companiesData.length);
         setCompanies(companiesData);
       } catch (err) {
-        console.error('Error fetching companies:', err);
+        console.error('[AdminDashboard] Error fetching companies:', err);
+        console.error('[AdminDashboard] Error details:', err.response?.data || err.message);
         setError('Failed to load companies');
       } finally {
         setLoading(false);
