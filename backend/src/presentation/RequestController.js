@@ -37,10 +37,14 @@ class RequestController {
         description
       });
 
+      // Return in envelope format for consistency with other endpoints
       res.status(201).json({
-        success: true,
-        request: result.request,
-        message: 'Request submitted successfully'
+        requester_service: 'directory_service',
+        response: {
+          success: true,
+          request: result.request,
+          message: 'Request submitted successfully'
+        }
       });
     } catch (error) {
       console.error('[RequestController] Error submitting request:', error);

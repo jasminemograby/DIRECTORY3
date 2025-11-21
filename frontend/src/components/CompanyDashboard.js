@@ -213,6 +213,7 @@ function CompanyDashboard({ company, departments, teams, employees, hierarchy, m
         {activeTab === 'requests' && (
           <div>
             <PendingRequestsSection 
+              key={`requests-${activeTab}-${refreshKey}`}
               companyId={companyId} 
               onRequestsLoaded={(count) => setPendingRequestsCount(count)}
             />

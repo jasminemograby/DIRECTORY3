@@ -18,9 +18,12 @@ function PendingRequestsSection({ companyId, onRequestsLoaded }) {
       try {
         setLoading(true);
         setError(null);
+        console.log('[PendingRequestsSection] Fetching requests for company:', companyId);
         const response = await getCompanyRequests(companyId, 'pending');
+        console.log('[PendingRequestsSection] Raw response:', response);
         // Handle envelope structure: { requester_service: 'directory_service', response: { success: true, requests: [...] } }
         const requestsData = response?.response?.requests || response?.requests || response?.data?.requests || [];
+        console.log('[PendingRequestsSection] Parsed requests:', requestsData.length, 'requests');
         
         if (isMounted) {
           setRequests(requestsData);
