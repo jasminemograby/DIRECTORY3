@@ -372,17 +372,21 @@ class ParseCSVUseCase {
       ? validatedSettings.approval_policy 
       : this.dbConstraintValidator.validateApprovalPolicy(row.approval_policy || row.learning_path_approval || 'manual');
     
-    console.log(`[ParseCSVUseCase] Approval policy - final value: "${approvalPolicy}" (type: ${typeof approvalPolicy})`);
+    // CRITICAL: Ensure the value is exactly 'manual' or 'auto' with no whitespace
+    // Trim and normalize to prevent any whitespace issues
+    const cleanApprovalPolicy = String(approvalPolicy).trim().toLowerCase();
+    
+    console.log(`[ParseCSVUseCase] Approval policy - raw: "${approvalPolicy}", cleaned: "${cleanApprovalPolicy}" (type: ${typeof cleanApprovalPolicy}, length: ${cleanApprovalPolicy.length})`);
     
     // Ensure the value is exactly 'manual' or 'auto' (database constraint requirement)
-    if (approvalPolicy !== 'manual' && approvalPolicy !== 'auto') {
-      console.error(`[ParseCSVUseCase] ❌ Invalid approval_policy value: "${approvalPolicy}" (type: ${typeof approvalPolicy})`);
-      throw new Error(`Invalid approval_policy value: "${approvalPolicy}". Must be either "manual" or "auto".`);
+    if (cleanApprovalPolicy !== 'manual' && cleanApprovalPolicy !== 'auto') {
+      console.error(`[ParseCSVUseCase] ❌ Invalid approval_policy value: "${cleanApprovalPolicy}" (type: ${typeof cleanApprovalPolicy}, length: ${cleanApprovalPolicy.length})`);
+      throw new Error(`Invalid approval_policy value: "${cleanApprovalPolicy}". Must be either "manual" or "auto".`);
     }
     
-    console.log(`[ParseCSVUseCase] ✅ Setting approval_policy to: "${approvalPolicy}"`);
+    console.log(`[ParseCSVUseCase] ✅ Setting approval_policy to: "${cleanApprovalPolicy}"`);
     updates.push(`approval_policy = $${paramIndex++}`);
-    values.push(approvalPolicy);
+    values.push(cleanApprovalPolicy); // Use the cleaned value
 
     // KPIs is mandatory, always update
     if (validatedSettings.kpis !== undefined) {
@@ -427,7 +431,11 @@ class ParseCSVUseCase {
     
     console.log(`[ParseCSVUseCase] Executing UPDATE query with ${updates.length} fields`);
     console.log(`[ParseCSVUseCase] Query: ${query}`);
-    console.log(`[ParseCSVUseCase] Values:`, values.map((v, i) => `$${i+1}=${v}`).join(', '));
+    console.log(`[ParseCSVUseCase] Values:`, values.map((v, i) => {
+      const valueStr = String(v);
+      const charCodes = Array.from(valueStr).map(c => c.charCodeAt(0)).join(',');
+      return `$${i+1}="${valueStr}" (length: ${valueStr.length}, codes: [${charCodes}])`;
+    }).join(', '));
     
     try {
       const result = await client.query(query, values);
@@ -445,6 +453,15 @@ class ParseCSVUseCase {
       // If it's a constraint violation for approval_policy, provide a clearer error
       if (error.code === '23514' && (error.constraint === 'companies_approval_policy_check' || error.constraint === 'companies_learning_path_approval_check')) {
         console.error(`[ParseCSVUseCase] Approval policy constraint violation - value sent: "${approvalPolicy}"`);
+        console.error(`[ParseCSVUseCase] Error details:`, {
+          code: error.code,
+          constraint: error.constraint,
+          message: error.message,
+          detail: error.detail,
+          hint: error.hint
+        });
+        // Check if the value has any hidden characters
+        console.error(`[ParseCSVUseCase] Value length: ${approvalPolicy.length}, char codes:`, Array.from(approvalPolicy).map(c => c.charCodeAt(0)));
         throw new Error(`Approval policy must be either "manual" or "auto". Received value: "${approvalPolicy}". Please check your CSV file.`);
       }
       
