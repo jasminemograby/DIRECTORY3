@@ -412,20 +412,35 @@ Employee rows (row 3+) were missing empty fields corresponding to company-level 
 ```
 Failed to load pending requests
 401 Unauthorized error
+Token in localStorage: null
 ```
 
-**Root Cause:**
-- `RequestController.getCompanyRequests` was returning data in double-envelope format
-- Frontend was parsing `response.response.requests` but actual path was `response.response.response.requests`
+**Root Causes:**
+1. **Double-envelope issue (Fixed earlier):**
+   - `RequestController.getCompanyRequests` was returning data in double-envelope format
+   - Frontend was parsing `response.response.requests` but actual path was `response.response.response.requests`
+   - **Fix:** Removed manual envelope wrapping from `RequestController.getCompanyRequests`, let `formatResponse` middleware handle envelope wrapping
+
+2. **401 Error on new company view (Current fix):**
+   - When a company is just created via CSV upload, user is redirected to company profile
+   - User might not be logged in (no token in localStorage)
+   - `PendingRequestsSection` tries to fetch requests but gets 401 Unauthorized
+   - Component shows error message instead of gracefully handling "no requests" case
 
 **Solution:**
-- Removed manual envelope wrapping from `RequestController.getCompanyRequests`
-- Let `formatResponse` middleware handle envelope wrapping
-- Frontend now correctly parses `response.response.requests`
+- **Frontend fix:** Handle 401 errors gracefully in `PendingRequestsSection`
+  - If error is 401 Unauthorized, treat as "no requests" (new company won't have requests anyway)
+  - Set `error = null` and `requests = []` for 401 errors
+  - Only show error message for other errors (500, network, etc.)
+  - This prevents showing "Failed to load pending requests" when viewing a new company without login
 
 **Files Changed:**
-- `backend/src/presentation/RequestController.js`
-- `frontend/src/components/PendingRequestsSection.js`
+- `backend/src/presentation/RequestController.js` (earlier fix)
+- `frontend/src/components/PendingRequestsSection.js` (both fixes)
+
+**Prevention:**
+- Always handle 401 errors gracefully when the absence of data is acceptable (e.g., new companies with no requests)
+- Distinguish between authentication errors (401) and actual data errors (500, network failures)
 
 ---
 
