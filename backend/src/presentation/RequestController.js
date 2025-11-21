@@ -105,15 +105,22 @@ class RequestController {
 
       console.log(`[RequestController] ✅ Found ${requests.length} requests for company ${companyId}`);
 
+      // Return in envelope format for consistency with other endpoints
       res.status(200).json({
-        success: true,
-        requests
+        requester_service: 'directory_service',
+        response: {
+          success: true,
+          requests
+        }
       });
     } catch (error) {
       console.error('[RequestController] Error fetching company requests:', error);
       const userFriendlyMessage = ErrorTranslator.translateError(error);
       res.status(500).json({
-        error: userFriendlyMessage || 'An error occurred while fetching requests'
+        requester_service: 'directory_service',
+        response: {
+          error: userFriendlyMessage || 'An error occurred while fetching requests'
+        }
       });
     }
   }

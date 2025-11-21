@@ -21,14 +21,19 @@ function EmployeeProfilePage() {
   const [employee, setEmployee] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
+  // Determine if this is an admin view (must be defined before useEffect)
+  const isAdminView = searchParams.get('admin') === 'true' || 
+                     user?.isAdmin || 
+                     user?.role === 'DIRECTORY_ADMIN';
+
   useEffect(() => {
     const fetchEmployee = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Get employee data
-        const response = await getEmployee(user?.companyId, employeeId);
+        // Get employee data - allow companyId to be null for admin view
+        const response = await getEmployee(user?.companyId || null, employeeId);
         
         // Handle response format
         const employeeData = response?.response?.employee || response?.employee || response;

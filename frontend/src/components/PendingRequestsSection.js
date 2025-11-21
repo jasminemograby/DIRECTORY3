@@ -126,9 +126,17 @@ function PendingRequestsSection({ companyId, onRequestsLoaded }) {
         </p>
       </div>
 
-      {requests.length === 0 ? (
+      {loading ? (
         <div className="p-6 rounded-lg text-center" style={{ background: 'var(--bg-card)' }}>
-          <p style={{ color: 'var(--text-secondary)' }}>No pending requests</p>
+          <p style={{ color: 'var(--text-secondary)' }}>Loading requests...</p>
+        </div>
+      ) : error ? (
+        <div className="p-6 rounded-lg text-center" style={{ background: 'var(--bg-card)' }}>
+          <p style={{ color: 'var(--text-error)' }}>{error}</p>
+        </div>
+      ) : requests.length === 0 ? (
+        <div className="p-6 rounded-lg text-center" style={{ background: 'var(--bg-card)' }}>
+          <p style={{ color: 'var(--text-secondary)' }}>No requests are pending</p>
         </div>
       ) : (
         <div className="space-y-4">

@@ -51,6 +51,7 @@ class CSVValidator {
     const departmentIds = new Set();
     const teamIds = new Set();
     const emails = new Set();
+    let decisionMakerCount = 0; // Track DECISION_MAKER count (only one allowed per company)
 
     employeeRows.forEach((row, index) => {
       const rowNumber = row.rowNumber || (index + 3); // +3 because CSV is 1-indexed, has header, and company row
@@ -144,6 +145,17 @@ class CSVValidator {
           row: rowNumber,
           column: 'role_type'
         });
+      } else if (row.role_type.includes('DECISION_MAKER')) {
+        // Check for only one DECISION_MAKER per company
+        decisionMakerCount++;
+        if (decisionMakerCount > 1) {
+          rowErrors.push({
+            type: 'multiple_decision_makers',
+            message: `Only one DECISION_MAKER is allowed per company. Found multiple employees with DECISION_MAKER role.`,
+            row: rowNumber,
+            column: 'role_type'
+          });
+        }
       }
 
       // Mandatory employee fields
