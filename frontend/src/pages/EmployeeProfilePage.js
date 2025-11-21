@@ -108,6 +108,23 @@ function EmployeeProfilePage() {
   const profileStatus = employee.profile_status || 'basic';
   const enrichmentStatus = searchParams.get('enrichment');
 
+  // Debug: Log roles and profile status for Management section
+  const isManager = employee.roles && 
+                   Array.isArray(employee.roles) && 
+                   (employee.roles.includes('DEPARTMENT_MANAGER') || employee.roles.includes('TEAM_MANAGER'));
+  const isApproved = profileStatus === 'approved';
+  
+  if (process.env.NODE_ENV === 'development') {
+    console.log('[EmployeeProfilePage] Management Section Debug:', {
+      employeeName: employee.full_name,
+      profileStatus,
+      isApproved,
+      roles: employee.roles,
+      isManager,
+      willShowManagement: isApproved && isManager
+    });
+  }
+
   return (
     <div className="min-h-screen p-6" style={{ background: 'var(--bg-primary)' }}>
       <div className="max-w-4xl mx-auto">
@@ -634,10 +651,7 @@ function EmployeeProfilePage() {
         )}
 
         {/* Management Section - Only visible for managers when profile is approved */}
-        {profileStatus === 'approved' && 
-         employee.roles && 
-         Array.isArray(employee.roles) && 
-         (employee.roles.includes('DEPARTMENT_MANAGER') || employee.roles.includes('TEAM_MANAGER')) && (
+        {isApproved && isManager && (
           <div 
             className="rounded-lg shadow-lg border p-8 mb-6"
             style={{
