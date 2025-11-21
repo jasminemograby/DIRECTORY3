@@ -220,11 +220,13 @@ function AdminDashboard() {
                               width: '60px',
                               height: '60px',
                               borderRadius: '9999px',
-                              objectFit: 'cover',
+                              objectFit: 'contain',
+                              objectPosition: 'center',
                               border: '2px solid var(--border-default, #e2e8f0)',
                               boxShadow: 'var(--shadow-card, 0 1px 3px rgba(0, 0, 0, 0.1))',
                               background: 'var(--bg-card, #ffffff)',
-                              flexShrink: 0
+                              flexShrink: 0,
+                              padding: '4px'
                             }}
                             onError={(e) => {
                               // Hide image on error, show placeholder

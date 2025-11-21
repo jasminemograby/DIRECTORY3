@@ -161,6 +161,13 @@ class EmployeeRepository {
     // Normalize email to lowercase
     const normalizedEmail = email ? email.toLowerCase().trim() : email;
 
+    // Check if email is reserved for Directory Admin
+    const CSVValidator = require('../infrastructure/CSVValidator');
+    const csvValidator = new CSVValidator();
+    if (csvValidator.isReservedAdminEmail(normalizedEmail)) {
+      throw new Error(`Email "${normalizedEmail}" is reserved for Directory Admin and cannot be used. Please use a different email address.`);
+    }
+
     const queryRunner = client || this.pool;
 
     // Check if email already exists

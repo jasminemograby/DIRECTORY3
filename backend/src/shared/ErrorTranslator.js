@@ -110,6 +110,9 @@ class ErrorTranslator {
       case 'duplicate_email':
         return `The email address "${validationError.message.split(': ')[1]}" appears multiple times in your CSV file. Each employee must have a unique email address.`;
 
+      case 'reserved_email':
+        return validationError.message || `The email address is reserved for Directory Admin and cannot be used. Please use a different email address.`;
+
       case 'duplicate_employee_id':
         return `The employee ID "${validationError.message.split(': ')[1]}" appears multiple times in your CSV file. Each employee must have a unique ID.`;
 

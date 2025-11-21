@@ -26,6 +26,13 @@ class AddEmployeeUseCase {
     // Validate and normalize employee data
     const validatedData = this.dbConstraintValidator.validateEmployeeRow(employeeData);
     
+    // Check if email is reserved for Directory Admin
+    const CSVValidator = require('../infrastructure/CSVValidator');
+    const csvValidator = new CSVValidator();
+    if (csvValidator.isReservedAdminEmail(validatedData.email)) {
+      throw new Error(`Email "${validatedData.email}" is reserved for Directory Admin and cannot be used. Please use a different email address.`);
+    }
+    
     // Check if email already exists (globally)
     const existingEmailOwner = await this.employeeRepository.findEmailOwner(validatedData.email);
     if (existingEmailOwner && existingEmailOwner.company_id !== companyId) {

@@ -113,6 +113,13 @@ class CSVValidator {
           row: rowNumber,
           column: 'email'
         });
+      } else if (this.isReservedAdminEmail(row.email)) {
+        rowErrors.push({
+          type: 'reserved_email',
+          message: `Email ${row.email} is reserved for Directory Admin and cannot be used. Please use a different email address.`,
+          row: rowNumber,
+          column: 'email'
+        });
       } else if (emails.has(row.email.toLowerCase())) {
         rowErrors.push({
           type: 'duplicate_email',
@@ -390,6 +397,19 @@ class CSVValidator {
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email.trim());
+  }
+
+  /**
+   * Check if email is reserved for Directory Admin
+   * @param {string} email - Email to check
+   * @returns {boolean} True if reserved
+   */
+  isReservedAdminEmail(email) {
+    if (!email || typeof email !== 'string') {
+      return false;
+    }
+    const reservedEmail = 'admin@educore.io';
+    return email.trim().toLowerCase() === reservedEmail.toLowerCase();
   }
 
   /**
