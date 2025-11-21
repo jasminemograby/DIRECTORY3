@@ -506,5 +506,51 @@ rm frontend/src/pages/AdminDashboard.js
 
 ---
 
+## Creating Admin Account
+
+### Option 1: Using SQL Script
+
+1. **Generate password hash** (use bcrypt with 10 rounds):
+   - Online tool: https://bcrypt-generator.com/
+   - Or use Node.js: `const bcrypt = require('bcrypt'); const hash = await bcrypt.hash('your-password', 10);`
+
+2. **Run SQL script**:
+   ```sql
+   INSERT INTO directory_admins (email, password_hash, full_name, role, is_active)
+   VALUES (
+     'admin@educore.io',  -- Your admin email
+     '$2b$10$...',  -- Your bcrypt hash
+     'Directory Admin',  -- Admin name
+     'DIRECTORY_ADMIN',
+     TRUE
+   );
+   ```
+
+3. **Script location**: `database/scripts/create_admin_account.sql`
+
+### Option 2: Using Node.js Script
+
+1. **Update credentials** in `database/scripts/create_admin_account.js`:
+   ```javascript
+   const adminData = {
+     email: 'admin@educore.io',
+     password: 'YourSecurePassword',  // ⚠️ Change this!
+     full_name: 'Directory Admin'
+   };
+   ```
+
+2. **Run script**:
+   ```bash
+   node database/scripts/create_admin_account.js
+   ```
+
+### Default Admin Account (For Testing)
+
+**Email**: `admin@educore.io` (example - you must create this)  
+**Password**: Set during account creation  
+**Note**: No default account exists - you must create one first!
+
+---
+
 **End of Document**
 
